@@ -1,0 +1,12 @@
+/appserv
+/cgi-bin
+/phpMyAdmin
+index.php
+phpinfo.php
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
