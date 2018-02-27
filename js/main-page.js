@@ -1,193 +1,7 @@
 $(document).ready(function ($) {
     console.log("loaded");
 
-    var histogramItems = [
-        {
-            value: 60,
-            text: "Value 1",
-            percent: 60
-        },
-        {
-            value: 30,
-            text: "Value 2",
-            percent: 50
-        },
-        {
-            value: 24,
-            text: "Value 3",
-            percent: 50
-        },
-        {
-            value: 16,
-            text: "Value 4",
-            percent: 40
-        },
-        {
-            value: 10,
-            text: "Value 5",
-            percent: 20
-        },
-        {
-            value: 8,
-            text: "Value 6",
-            percent: 20
-        },
-        {
-            value: 8,
-            text: "Value 7",
-            percent: 20
-        },
-        {
-            value: 8,
-            text: "Value 8",
-            percent: 20
-        },
-        {
-            value: 8,
-            text: "Value 9",
-            percent: 15
-        },
-        {
-            value: 8,
-            text: "Value 10",
-            percent: 14
-        },
-        {
-            value: 4,
-            text: "Value 11",
-            percent: 13
-        },
-        {
-            value: 4,
-            text: "Value 12",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 13",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        },
-        {
-            value: 4,
-            text: "Value 14",
-            percent: 10
-        }
-    ];
+    getData();
 
     var typeSelect = $("#type-select");
     var typeContent = $("#type-content");
@@ -223,36 +37,6 @@ $(document).ready(function ($) {
             break;
     }
 
-    while (iNum<11) {
-        var modifyTableTr = $("<tr></tr>");
-        var modifyTableTd = $("<td></td>");
-        modifyTableTd.text(iNum);
-        modifyTableTd.css("text-align", "center");
-        modifyTableTr.append(modifyTableTd);
-        $("#modify-numeric-table").append(modifyTableTr);
-        var modifyTableTrDate = $("<tr></tr>");
-        var modifyTableTdDate = $("<td></td>");
-        modifyTableTdDate.text(iNum + ".1.2018");
-        modifyTableTdDate.css("text-align", "center");
-        modifyTableTrDate.append(modifyTableTdDate);
-        $("#modify-date-table").append(modifyTableTrDate);
-        var modifyTableTrText = $("<tr></tr>");
-        var modifyTableTdText = $("<td></td>");
-        modifyTableTdText.text("Text " + iNum);
-        modifyTableTdText.css("text-align", "center");
-        modifyTableTrText.append(modifyTableTdText);
-        $("#modify-text-table").append(modifyTableTrText);
-        iNum++;
-    }
-
-    $.each(histogramItems, function (i, val) {
-        var item = $("<span></span>");
-        item.addClass("histogram-item");
-        item.css("height", val.percent + "%").css("height", "-=4px");
-        item.prop("title", val.value + ", " + val.text);
-        $(".histogram").append(item);
-    });
-
 
     $("#change-type-1").click(function () {
         $("#modal-change-type").css("display", "inline-block");
@@ -279,7 +63,7 @@ $(document).ready(function ($) {
         $("#modal-background").css("display", "inline-block");
     });
 
-    $("#change-type-4").click(function () {
+    $(".change-type-4").click(function () {
         $("#modal-change-type").css("display", "inline-block");
         $("#modal-background").css("display", "inline-block");
     });
@@ -433,6 +217,97 @@ $(document).ready(function ($) {
         $("#modal-modify-text").css("display", "none");
         $("#modal-background").css("display", "none");
         $("#modal-confirm-delete").css("display", "none");
+    }
+
+    function getData() {
+        $.post( "api/getData.php", "")
+            .done(function( data ) {
+                console.log( "Data Loaded", data.titles);
+                var firstValues = [];
+                for (var i = 0, len = data.titles.length; i < len; i++) {
+                    var newTr = $("<tr></tr>");
+                    var td1 = $("<td></td>");
+                    td1.text(data.titles[i].title);
+                    newTr.append(td1);
+                    var td2 = $("<td></td>");
+                    var buttonPrep = $("<button class='button-prep change-type4'>Text</button>");
+                    buttonPrep.click(function () {
+                        $("#modal-change-type").css("display", "inline-block");
+                        $("#modal-background").css("display", "inline-block");
+                    });
+                    td2.append(buttonPrep);
+                    newTr.append(td2);
+                    var td3 = $("<td></td>");
+                    var unique = 0;
+                    for(var k in data.rows[i]) {
+                        if(data.rows[i][k] == 1) {
+                            unique++;
+                        }
+                    }
+                    td3.text(unique);
+                    newTr.append(td3);
+                    var td4 = $("<td style=\"min-width: 300px; max-width: 300px\"></td>");
+                    var div = $("<div class='histogram'></div>");
+                    td4.append(div);
+                    var biggest = 0;
+                    var countOfItems = 0;
+                    $.each(data.rows[i], function (l, val) {
+                        var intVal = parseInt(val);
+                        countOfItems++;
+                        if (intVal > biggest) {
+                            biggest = intVal;
+                        }
+                    });
+                    var widthOfItem = 100 / countOfItems;
+                    $m = 0;
+                    $.each(data.rows[i], function (l, val) {
+                        var item = $("<span></span>");
+                        item.addClass("histogram-item");
+                        var heightPrc = (parseInt(val) / biggest) * 100;
+                        item.css("height", heightPrc + "%").css("min-height", "1px").css("margin-botton", "0px").css("width", widthOfItem + "%");
+                        item.prop("title", val + ", " + l);
+                        div.append(item);
+                        if ($m < 11) {
+                            var toAdd;
+                            if(l == "") {
+                                toAdd = "\"\" - Empty Value"
+                            } else {
+                                toAdd = l;
+                            }
+                            if(firstValues[i] == null) {
+                                firstValues[i] = [];
+                            }
+                            firstValues[i].push(toAdd);
+                            $m++;
+                        }
+                    });
+                    newTr.append(td4);
+                    var td5 = $("<td></td>");
+                    var button1 = $("<button class='button-prep' id='"+ i +"'>Modify</button>");
+                    var button2 = $("<button class='button-prep-danger show-confirm'>Delete</button>");
+                    button1.click(function (event) {
+                        console.log("clicked");
+                        var id = event.target.id;
+                        console.log("id", id, firstValues[id]);
+                        var textTable = $("#modify-text-table");
+                        textTable.empty();
+                        textTable.append($("<tr><th>First 10 values</th></tr>"));
+                        $.each(firstValues[id], function (key, value2) {
+                            var modifyTableTrText = $("<tr></tr>");
+                            var modifyTableTdText = $("<td></td>");
+                            modifyTableTdText.text(value2);
+                            modifyTableTdText.css("text-align", "center");
+                            modifyTableTrText.append(modifyTableTdText);
+                            textTable.append(modifyTableTrText);
+                        });
+                        $("#modal-modify-text").css("display", "inline-block");
+                        $("#modal-background").css("display", "inline-block");
+                    });
+                    td5.append(button1, button2);
+                    newTr.append(td5);
+                    $("#info-table").append(newTr);
+                }
+            });
     }
 
 });

@@ -17,13 +17,15 @@ $(document).ready(function ($) {
 
     var dataTable = $("#data-table");
 
+    /*
     $("#upload").click(function () {
         window.location.href = "main-page.html";
     });
+     */
 
     $("#file").change(function () {
         $("#config-div").css("display", "inline-block");
-        $("#data-table-div").css("display", "block");
+        //$("#data-table-div").css("display", "block");
         dataTable.empty();
         var trHead = $("<tr></tr>");
         var i = 1;
@@ -45,6 +47,32 @@ $(document).ready(function ($) {
             });
             dataTable.append(tr);
         })
+    });
+
+    $("#upload-form").submit(function (event) {
+        event.preventDefault();
+        console.log(this);
+        var fileInputElement = document.getElementById("file");
+        var formData = new FormData();
+        console.log(fileInputElement.files[0]);
+        formData.append("csv", fileInputElement.files[0]);
+        formData.append("encoding", $("#encoding").val());
+        formData.append("separator", $("#separator").val());
+        console.log("submiting", formData);
+        $.ajax({
+            url: "api/upload.php",
+            data: formData,
+            processData: false,
+            contentType: false,
+            type: 'POST',
+            success: function ( data ) {
+                console.log(data);
+                window.location = "main-page.html";
+            },
+            error: function () {
+                alert("Network error");
+            }
+        });
     });
 
 });

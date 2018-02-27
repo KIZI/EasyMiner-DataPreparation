@@ -40,76 +40,13 @@
 <div id="app">
     <div class="main-content" style="margin-bottom: 40px">
         <h1>Data preprocessing</h1>
-        <table class="info-table">
+        <table class="info-table" id="info-table">
             <tr>
                 <th>Atribute name</th>
                 <th>Data type</th>
-                <th>Missing</th>
+                <th>Number of unique values</th>
                 <th></th>
                 <th></th>
-            </tr>
-            <tr>
-                <td>Sloupec 1</td>
-                <td>
-                    <button class="button-prep" id="change-type-1">Numeric</button>
-                </td>
-                <td>5</td>
-                <td style="min-width: 300px; max-width: 300px">
-                    <div class="histogram">
-                        <span style="display: inline-block; height: 80px"></span>
-                    </div>
-                </td>
-                <td>
-                    <button class="button-prep" id="modify-1">Modify</button>
-                    <button class="button-prep-danger show-confirm">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>Sloupec 2</td>
-                <td>
-                    <button class="button-prep" id="change-type-2">Categorical</button>
-                </td>
-                <td>5</td>
-                <td style="min-width: 300px; max-width: 300px">
-                    <div class="histogram">
-                        <span style="display: inline-block; height: 80px"></span>
-                    </div>
-                </td>
-                <td>
-                    <button class="button-prep-danger show-confirm">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>Sloupec 3</td>
-                <td>
-                    <button class="button-prep" id="change-type-3">Date</button>
-                </td>
-                <td>5</td>
-                <td style="min-width: 300px; max-width: 300px">
-                    <div class="histogram">
-                        <span style="display: inline-block; height: 80px"></span>
-                    </div>
-                </td>
-                <td>
-                    <button class="button-prep" id="modify-3">Modify</button>
-                    <button class="button-prep-danger show-confirm">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>Sloupec 4</td>
-                <td>
-                    <button class="button-prep" id="change-type-4">Text</button>
-                </td>
-                <td>5</td>
-                <td style="min-width: 300px; max-width: 300px">
-                    <div class="histogram">
-                        <span style="display: inline-block; height: 80px"></span>
-                    </div>
-                </td>
-                <td>
-                    <button class="button-prep" id="modify-4">Modify</button>
-                    <button class="button-prep-danger show-confirm">Delete</button>
-                </td>
             </tr>
         </table>
         <table style="width: 100%">
@@ -128,9 +65,9 @@
 <div id="modal-change-type" class="modal-window">
     <h1>Change type</h1>
     <select id="type-select">
-        <option value="0" selected>Numeric</option>
+        <option value="0">Numeric</option>
         <option value="1">Categorical</option>
-        <option value="2">Text</option>
+        <option value="2" selected>Text</option>
         <option value="3">Date</option>
     </select>
     <div id="type-content" class="content-modal"></div>

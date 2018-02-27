@@ -42,45 +42,47 @@
         <h1>
             Upload dataset - select file
         </h1>
-        <table>
-            <tr>
-                <td>
-                    Upload file:
-                </td>
-                <td>
-                    <input type="file" id="file">
-                </td>
-            </tr>
-        </table>
-        <div id="config-div" style="display: none">
+        <form id="upload-form">
             <table>
                 <tr>
-                    <td colspan="2">
-                        <h2>Configuration</h2>
-                    </td>
-                </tr>
-                <tr>
                     <td>
-                        <label for="encoding" class="required">Encoding:</label>
-                        <select id="encoding">
-                            <option>UTF-8</option>
-                            <option>WIN 1250</option>
-                            <option>ASCII</option>
-                        </select>
+                        Upload file:
                     </td>
                     <td>
-                        <label for="separator" class="required">Separator:</label>
-                        <select id="separator">
-                            <option>Comma (',')</option>
-                            <option>Semicolon (';')</option>
-                            <option>Vertical line ('|')</option>
-                            <option>Tabulator ('\t')</option>
-                        </select>
+                        <input type="file" id="file">
                     </td>
                 </tr>
             </table>
-            <button class="button-prep" id="upload">Upload</button>
-        </div>
+            <div id="config-div" style="display: none">
+                <table>
+                    <tr>
+                        <td colspan="2">
+                            <h2>Configuration</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="encoding" class="required">Encoding:</label>
+                            <select id="encoding">
+                                <option>UTF-8</option>
+                                <option>WIN 1250</option>
+                                <option>ASCII</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="separator" class="required">Separator:</label>
+                            <select id="separator">
+                                <option value=",">Comma (',')</option>
+                                <option value=";">Semicolon (';')</option>
+                                <option value="|">Vertical line ('|')</option>
+                                <option value="\t">Tabulator ('\t')</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                <button class="button-prep" type="submit" id="upload">Upload</button>
+            </div>
+        </form>
     </div>
     <div class="load-div" id="data-table-div" style="display: none; width: 1200px; margin-bottom: 40px">
         <div class="data-div-inner">
