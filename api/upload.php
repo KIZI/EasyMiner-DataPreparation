@@ -3,7 +3,8 @@ session_start();
 require_once('../lib/parsecsv.lib.php');
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
-    if($_FILES['csv']['error'] == 0) {
+    $mimes = array('application/vnd.ms-excel','text/plain','text/csv','text/tsv');
+    if($_FILES['csv']['error'] == 0 && in_array($_FILES['csv']['type'],$mimes)) {
         try {
             $csvParser = new parseCSV();
             $csvParser->delimiter = $_POST["separator"];

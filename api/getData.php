@@ -14,9 +14,7 @@ function dataToSend() {
     $answerTitles = [];
     $i = 0;
     foreach ($csvParser->titles as $value) {
-        $e = new AnswerTitle();
-        $e->id = $i;
-        $e->title = $value;
+        $e = ['id' => $i, 'title' => $value];
         array_push($answerTitles, $e);
         $i++;
     }
@@ -26,19 +24,14 @@ function dataToSend() {
         $count++;
         $k = 0;
         foreach ($row as $item) {
-            if ($unique[$k][$item] == null) {
-                $unique[$k][$item] = 1;
+            if ($unique[$k][$item.""] == null) {
+                $unique[$k][$item.""] = 1;
             } else {
-                $unique[$k][$item] = $unique[$k][$item] + 1;
+                $unique[$k][$item.""] = $unique[$k][$item.""] + 1;
             }
             $k++;
         }
     }
     $toReturn = ["titles"=>$answerTitles, "rows"=>$unique, "count"=>$count];
     return $toReturn;
-}
-
-class AnswerTitle {
-    public $id;
-    public $title = "";
 }

@@ -71,6 +71,11 @@
         <option value="3">Date</option>
     </select>
     <div id="type-content" class="content-modal"></div>
+    <table class="info-table prep-margin value-table">
+        <tr>
+            <th>First ten values</th>
+        </tr>
+    </table>
     <table>
         <tr>
             <td>
@@ -93,18 +98,35 @@
         <option value="3">Excel expression</option>
     </select>
     <div id="modify-numeric-content" class="content-modal"></div>
-    <table class="info-table prep-margin" id="modify-numeric-table">
-        <tr>
-            <th>First ten values</th>
-        </tr>
-    </table>
     <table>
         <tr>
             <td>
-                <button class="button-prep hide" id="modal-modify-numeric-save">Modify</button>
+                <table class="info-table prep-margin value-table">
+                    <tr>
+                        <th>First ten values</th>
+                    </tr>
+                </table>
             </td>
             <td>
-                <button class="button-prep hide" id="modal-modify-numeric-new">Create new</button>
+                <table class="info-table prep-margin value-table-change">
+                    <tr>
+                        <th>First ten values</th>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <div>
+        <label for="modify-new-number">Name of new column (if new): </label>
+        <input type="text" id="modify-new-number">
+    </div>
+    <table>
+        <tr>
+            <td>
+                <button class="button-prep" id="modal-modify-numeric-save">Modify</button>
+            </td>
+            <td>
+                <button class="button-prep" id="modal-modify-numeric-new">Create new</button>
             </td>
             <td>
                 <button class="button-prep-danger hide" id="modal-modify-numeric-cancel">Cancel</button>
@@ -121,7 +143,7 @@
         <option value="1">Time difference from another column</option>
     </select>
     <div id="modify-date-content" class="content-modal"></div>
-    <table class="info-table prep-margin" id="modify-date-table">
+    <table class="info-table prep-margin value-table">
         <tr>
             <th>First ten values</th>
         </tr>
@@ -149,7 +171,7 @@
         <option value="1">Alter text by regular expression</option>
     </select>
     <div id="modify-text-content" class="content-modal"></div>
-    <table class="info-table prep-margin" id="modify-text-table">
+    <table class="info-table prep-margin value-table">
         <tr>
             <th>First ten values</th>
         </tr>
@@ -183,6 +205,8 @@
         </tr>
     </table>
 </div>
+
+<div id="spinner-modal" class="loader"></div>
 
 <footer>
     <div class="content">

@@ -59,7 +59,22 @@ $(document).ready(function ($) {
         formData.append("encoding", $("#encoding").val());
         formData.append("separator", $("#separator").val());
         console.log("submiting", formData);
+        var uploadDiv = $("#progress-upload");
+        $("#modal-background").css("display", "block");
         $.ajax({
+            xhr: function()
+            {
+                uploadDiv.css("display", "block");
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(evt){
+                    if (evt.lengthComputable) {
+                        var percentComplete = evt.loaded / evt.total;
+                        $("#upload-percentage").text((percentComplete * 100).toFixed(0));
+                        console.log(percentComplete);
+                    }
+                }, false);
+                return xhr;
+            },
             url: "api/upload.php",
             data: formData,
             processData: false,
@@ -68,8 +83,12 @@ $(document).ready(function ($) {
             success: function ( data ) {
                 console.log(data);
                 window.location = "main-page.html";
+                uploadDiv.css("display", "none");
+                $("#modal-background").css("display", "none");
             },
             error: function () {
+                uploadDiv.css("display", "none");
+                $("#modal-background").css("display", "none");
                 alert("Network error");
             }
         });
