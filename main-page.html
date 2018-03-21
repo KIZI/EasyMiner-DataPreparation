@@ -63,132 +63,160 @@
 </div>
 
 <div id="modal-change-type" class="modal-window">
-    <h1>Change type</h1>
-    <select id="type-select">
-        <option value="0">Numeric</option>
-        <option value="1">Categorical</option>
-        <option value="2" selected>Text</option>
-        <option value="3">Date</option>
-    </select>
-    <div id="type-content" class="content-modal"></div>
-    <table class="info-table prep-margin value-table">
-        <tr>
-            <th>First ten values</th>
-        </tr>
-    </table>
-    <table>
+    <table style="width: 100%">
         <tr>
             <td>
-                <button class="button-prep hide" id="modal-type-save">Save</button>
+                <h1>Change type</h1>
             </td>
-            <td>
-                <button class="button-prep-danger hide" id="modal-type-cancel">Cancel</button>
+            <td style="text-align: right">
+                <div class="close-modal hide"><b style="color: white">x</b></div>
             </td>
         </tr>
     </table>
+    <div style="float: left; width: 300px">
+        <select id="type-select">
+            <option value="0">Numeric</option>
+            <option value="2" selected>Text</option>
+            <option value="3">Date</option>
+        </select>
+        <div id="type-content" class="content-modal"></div>
+        <table>
+            <tr>
+                <td>
+                    <button class="button-prep" id="modal-type-save">Save</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="float: right; width: 500px">
+        <table class="info-table prep-margin value-table-change">
+            <tr>
+                <th>First ten values</th>
+            </tr>
+        </table>
+    </div>
 </div>
 
-<div id="modal-modify-numeric" class="modal-window">
-    <h1>Modify</h1>
-    <label for="sel-mod-num"></label>
-    <select id="sel-mod-num">
-        <option value="0">Convert to percentage</option>
-        <option value="1">Add to another numeric column</option>
-        <option value="2">Subtract from another numeric column</option>
-        <option value="3">Excel expression</option>
-    </select>
-    <div id="modify-numeric-content" class="content-modal"></div>
-    <table>
+<div id="modal-modify-numeric" class="modal-window" style="display: none">
+    <table style="width: 100%">
         <tr>
             <td>
-                <table class="info-table prep-margin value-table">
-                    <tr>
-                        <th>First ten values</th>
-                    </tr>
-                </table>
+                <h1>Modify</h1>
             </td>
-            <td>
-                <table class="info-table prep-margin value-table-change">
-                    <tr>
-                        <th>First ten values</th>
-                    </tr>
-                </table>
+            <td style="text-align: right">
+                <div class="close-modal hide"><b style="color: white">x</b></div>
             </td>
         </tr>
     </table>
-    <div>
-        <label for="modify-new-number">Name of new column (if new): </label>
-        <input type="text" id="modify-new-number">
+    <div style="float: left; width: 300px">
+        <label for="sel-mod-num"></label>
+        <select id="sel-mod-num">
+            <option value="0">Convert to percentage</option>
+            <option value="1">Add to another numeric column</option>
+            <option value="2">Subtract from another numeric column</option>
+            <option value="3">Excel expression</option>
+        </select>
+        <div id="modify-numeric-content" class="content-modal"></div>
+        <div>
+            <label for="modify-new-number">Name of new column: </label>
+            <input type="text" id="modify-new-number">
+        </div>
+        <table>
+            <tr>
+                <td>
+                    <button class="button-prep" id="modal-modify-numeric-new">Create</button>
+                </td>
+            </tr>
+        </table>
     </div>
-    <table>
-        <tr>
-            <td>
-                <button class="button-prep" id="modal-modify-numeric-save">Modify</button>
-            </td>
-            <td>
-                <button class="button-prep" id="modal-modify-numeric-new">Create new</button>
-            </td>
-            <td>
-                <button class="button-prep-danger hide" id="modal-modify-numeric-cancel">Cancel</button>
-            </td>
-        </tr>
-    </table>
+    <div style="float: right; width: 500px">
+        <table class="info-table prep-margin value-table-change">
+            <tr>
+                <th>First ten values</th>
+            </tr>
+        </table>
+    </div>
 </div>
 
 <div id="modal-modify-date" class="modal-window">
-    <h1>Modify</h1>
-    <label for="sel-mod-date"></label>
-    <select id="sel-mod-date">
-        <option value="0">Convert to days</option>
-        <option value="1">Time difference from another column</option>
-    </select>
-    <div id="modify-date-content" class="content-modal"></div>
-    <table class="info-table prep-margin value-table">
-        <tr>
-            <th>First ten values</th>
-        </tr>
-    </table>
-    <table>
+    <table style="width: 100%">
         <tr>
             <td>
-                <button class="button-prep hide" id="modal-modify-date-save">Modify</button>
+                <h1>Modify</h1>
             </td>
-            <td>
-                <button class="button-prep hide" id="modal-modify-date-new">Create new</button>
-            </td>
-            <td>
-                <button class="button-prep-danger hide" id="modal-modify-date-cancel">Cancel</button>
+            <td style="text-align: right">
+                <div class="close-modal hide"><b style="color: white">x</b></div>
             </td>
         </tr>
     </table>
+    <div style="float: left; width: 300px">
+        <label for="sel-mod-date"></label>
+        <select id="sel-mod-date">
+            <option value="0">Convert to days</option>
+            <option value="1">Time difference from another column</option>
+        </select>
+        <div id="modify-date-content" class="content-modal"></div>
+        <div>
+            <label for="modify-new-date">Name of new column: </label>
+            <input type="text" id="modify-new-date">
+        </div>
+        <table>
+            <tr>
+                <td>
+                    <button class="button-prep" id="modal-modify-date-new">Create</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="float: right; width: 500px">
+        <table class="info-table prep-margin value-table-change">
+            <tr>
+                <th>First ten values</th>
+            </tr>
+        </table>
+    </div>
 </div>
 
 <div id="modal-modify-text" class="modal-window">
-    <h1>Modify</h1>
-    <label for="sel-mod-text"></label>
-    <select id="sel-mod-text">
-        <option value="0">Remove part of text</option>
-        <option value="1">Alter text by regular expression</option>
-    </select>
-    <div id="modify-text-content" class="content-modal"></div>
-    <table class="info-table prep-margin value-table">
-        <tr>
-            <th>First ten values</th>
-        </tr>
-    </table>
-    <table>
+    <table style="width: 100%">
         <tr>
             <td>
-                <button class="button-prep hide" id="modal-modify-text-save">Modify</button>
+                <h1>Modify</h1>
             </td>
-            <td>
-                <button class="button-prep hide" id="modal-modify-text-new">Create new</button>
-            </td>
-            <td>
-                <button class="button-prep-danger hide" id="modal-modify-text-cancel">Cancel</button>
+            <td style="text-align: right">
+                <div class="close-modal hide"><b style="color: white">x</b></div>
             </td>
         </tr>
     </table>
+    <div style="float: left; width: 300px">
+        <label for="sel-mod-text"></label>
+        <select id="sel-mod-text">
+            <option value="0">Remove part of text</option>
+            <option value="1">Alter text by regular expression</option>
+        </select>
+        <div id="modify-text-content" class="content-modal">
+            <label for='type-text-sel'>To remove: </label>
+            <input type='text' id='type-text-sel'>
+        </div>
+        <div>
+            <label for="modify-new-text">Name of new column: </label>
+            <input type="text" id="modify-new-text">
+        </div>
+        <table>
+            <tr>
+                <td>
+                    <button class="button-prep" id="modal-modify-text-new">Create</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="float: right; width: 500px">
+        <table class="info-table prep-margin value-table-change">
+            <tr>
+                <th>First ten values</th>
+            </tr>
+        </table>
+    </div>
 </div>
 
 <div id="modal-confirm-delete" class="modal-window">
@@ -216,6 +244,7 @@
 </footer>
 </body>
 <script src="js/jquery-3.3.1.min.js" type="text/javascript"></script>
+<script src="js/moment.min.js" type="text/javascript"></script>
 <script src="js/main-page.js" type="text/javascript"></script>
 </html>
 

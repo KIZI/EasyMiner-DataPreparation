@@ -1,5 +1,6 @@
 $(document).ready(function ($) {
-    
+
+    var es;
     var tableData = [
         { data: ["119736", "FL", "CLAY COUNTY", "498960", "498960", "498960", "498960", "498960"]},
         { data: ["448094", "FL", "CLAY COUNTY", "1322376.3", "1322376.3", "1322376.3", "1322376.3", "1322376.3"]},
@@ -82,9 +83,9 @@ $(document).ready(function ($) {
             type: 'POST',
             success: function ( data ) {
                 console.log(data);
-                window.location = "main-page.html";
                 uploadDiv.css("display", "none");
                 $("#modal-background").css("display", "none");
+                window.location = "main-page.html";
             },
             error: function () {
                 uploadDiv.css("display", "none");

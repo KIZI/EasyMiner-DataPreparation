@@ -117,11 +117,11 @@ input, select {
 
 .modal-window {
     position: fixed;
-    width: 600px;
+    width: 800px;
     margin: auto;
     top: 85px;
     left: 50%;
-    margin-left: -300px;
+    margin-left: -400px;
     z-index: 100;
     background-color: white;
     padding: 20px;
@@ -158,7 +158,7 @@ input, select {
 }
 
 .prep-margin {
-    margin: 15px;
+    margin-left: 15px;
 }
 
 .histogram-item {
@@ -189,4 +189,17 @@ input, select {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.close-modal {
+    background-color: #b02936;
+    border: #b02936 solid;
+    border-radius: 20px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 9px;
+    padding-right: 9px;
+    display: inline-block;
+    float: right;
+    cursor: pointer;
 }
