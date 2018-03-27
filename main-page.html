@@ -52,7 +52,7 @@
         <table style="width: 100%">
             <tr>
                 <td>
-                    <button class="button-prep" style="width: 300px !important;">Continue</button>
+                    <button class="button-prep" style="width: 300px !important;" id="continue">Continue</button>
                 </td>
                 <td>
                     <button class="button-prep-danger" style="width: 300px !important;" id="go-back">Go back</button>
@@ -116,7 +116,7 @@
             <option value="2">Subtract from another numeric column</option>
             <option value="3">Excel expression</option>
         </select>
-        <div id="modify-numeric-content" class="content-modal"></div>
+        <div id="modify-numeric-content" class="content-modal" style="position: relative"></div>
         <div>
             <label for="modify-new-number">Name of new column: </label>
             <input type="text" id="modify-new-number">

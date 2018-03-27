@@ -1,11 +1,36 @@
 <?php
 date_default_timezone_set('Europe/Prague');
+ini_set('memory_limit', '2048M');
 session_start();
 require_once('../lib/parsecsv.lib.php');
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
     http_response_code(200);
     header('Content-Type: application/json');
     echo json_encode(dataToSend());
+} else if ($_SERVER['REQUEST_METHOD'] == "GET") {
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=data.csv');
+
+    $output = fopen('php://output', 'w');
+
+    $fileNumber = unserialize($_SESSION["fileNumber"]);
+
+    $csvParser = unserialize($_SESSION["data0"]);
+
+    fputcsv($output, $csvParser->titles);
+
+    $i = 0;
+    while ($i <= $fileNumber) {
+        $csvParser = unserialize($_SESSION["data".$i]);
+        foreach ($csvParser->data as $row) {
+            $arrToPush = [];
+            foreach ($row as $val) {
+                array_push($arrToPush, $val);
+            }
+            fputcsv($output, $arrToPush);
+        }
+        $i++;
+    }
 } else {
     http_response_code(405);
 }
@@ -16,6 +41,7 @@ function dataToSend() {
 
     $answerTitles = [];
     $i = 0;
+    $simpleTitles = $csvParser->titles;
 
     foreach ($csvParser->titles as $value) {
         $e = ['id' => $i, 'title' => $value];
@@ -30,25 +56,20 @@ function dataToSend() {
 
     $i = 0;
 
+    while ($i <= $fileNumber) {
+        $csvParser = unserialize($_SESSION["data".$i]);
+        foreach ($csvParser->data as $row) {
+            foreach ($row as $key2 => $item) {
+                $k = array_search($key2, $simpleTitles);
+                if ($unique[$k][$item . ""] == null) {
+                    $unique[$k][$item . ""] = 1;
 
-    if ($fileNumber != null) {
-        while ($i <= $fileNumber) {
-            $csvParser = unserialize($_SESSION["data".$i]);
-            foreach ($csvParser->data as $key => $row) {
-                $count++;
-                $k = 0;
-                foreach ($row as $item) {
-                    if ($unique[$k][$item . ""] == null) {
-                        $unique[$k][$item . ""] = 1;
-
-                    } else {
-                        $unique[$k][$item . ""] = $unique[$k][$item . ""] + 1;
-                    }
-                    $k++;
+                } else {
+                    $unique[$k][$item . ""] = $unique[$k][$item . ""] + 1;
                 }
             }
-            $i++;
         }
+        $i++;
     }
 
     if ($types == null) {

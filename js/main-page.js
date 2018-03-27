@@ -17,20 +17,6 @@ $(document).ready(function ($) {
     var textContent = $("#modify-text-content");
     console.log(typeSelect.val());
 
-    var lab;
-    var sel;
-
-    switch (typeSelect.val()) {
-        case "3":
-            console.log("3");
-            lab = $("<label for='type-number-sel'>Date format: </label>");
-            sel = $("<select id='type-number-sel'></select>");
-            sel.append($("<option selected>Comma</option>"));
-            sel.append($("<option>Dot</option>"));
-            typeContent.append(lab, sel);
-            break;
-    }
-
     $("#modal-background").click(function () {
         hideAll();
     });
@@ -66,19 +52,18 @@ $(document).ready(function ($) {
                 typeSelect.val(3);
                 typeContent.empty();
                 console.log("type 3");
-                var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'h:m:s'];
+                var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y'];
                 lab = $("<label for='numeral-number-sel'>Date format: </label>");
                 sel = $("<select id='numeral-number-sel' style='margin-bottom: 15px'></select>");
-                sel.append($("<option value='d.m.Y'>dd.mm.yyyy</option>"));
-                sel.append($("<option value='d/m/Y'>dd/mm/yyyy</option>"));
-                sel.append($("<option value='d-m-Y'>dd-mm-yyyy</option>"));
-                sel.append($("<option value='Y.m.d'>yyyy.mm.dd</option>"));
-                sel.append($("<option value='Y/m/d'>yyyy/mm/dd</option>"));
-                sel.append($("<option value='Y-m-d'>yyyy-mm-dd</option>"));
-                sel.append($("<option value='m.d.Y'>mm.dd.yyyy</option>"));
-                sel.append($("<option value='m/d/Y'>mm/dd/yyyy</option>"));
-                sel.append($("<option value='m-d-Y'>mm-dd-yyyy</option>"));
-                sel.append($("<option value='h:i:s'>hh:ii:ss</option>"));
+                sel.append($("<option value='d.m.Y'>D.M.Y</option>"));
+                sel.append($("<option value='d/m/Y'>D/M/Y</option>"));
+                sel.append($("<option value='d-m-Y'>D-M-Y</option>"));
+                sel.append($("<option value='Y.m.d'>Y.M.D</option>"));
+                sel.append($("<option value='Y/m/d'>Y/M/D</option>"));
+                sel.append($("<option value='Y-m-d'>Y-M-D</option>"));
+                sel.append($("<option value='m.d.Y'>M.D.Y</option>"));
+                sel.append($("<option value='m/d/Y'>M/D/Y</option>"));
+                sel.append($("<option value='m-d-Y'>M-D-Y</option>"));
                 var isIn = false;
                 $.each(originalValues, function (l, val) {
                     if (val === allData.titles[selectedColumn].type.format) {
@@ -93,11 +78,10 @@ $(document).ready(function ($) {
                 if (!isIn && allData.titles[selectedColumn].type.format) {
                     console.log(allData.titles[selectedColumn].type.format);
                     var format = allData.titles[selectedColumn].type.format;
-                    var days = format.replace('d', 'dd');
-                    var months = days.replace('m', 'mm');
-                    var years = months.replace('Y', 'yy');
+                    var days = format.replace('d', 'D');
+                    var months = days.replace('m', 'M');
                     sel.prop('disabled', true);
-                    sel2.val(years);
+                    sel2.val(months);
 
                 } else if (!isIn) {
                     sel.val(originalValues[0]);
@@ -129,7 +113,18 @@ $(document).ready(function ($) {
         switch (numSelect.val()) {
             case "0":
                 numContent.empty();
-                createNumber.prop('disabled', false);
+                var labRound = $("<label for='roundSel'>Round precision:</label>");
+                var selRound = $("<select id='roundSel'></select>");
+                selRound.append($("<option value='0'>0</option>"));
+                selRound.append($("<option value='1'>1</option>"));
+                selRound.append($("<option value='2'>2</option>"));
+                selRound.append($("<option value='3'>3</option>"));
+                selRound.append($("<option value='4'>4</option>"));
+                selRound.append($("<option value='5'>5</option>"));
+                selRound.val("2");
+                selRound.change(function () {
+                    showNewValues(firstValues[selectedColumn], 1);
+                });
                 showNewValues(firstValues[selectedColumn], 1);
                 break;
             case "1":
@@ -138,7 +133,8 @@ $(document).ready(function ($) {
                 sel = $("<select id='numeral-number-sel'></select>");
                 var i = true;
                 $.each(allData.titles, function (l, val) {
-                    if (val.type === "Number") {
+                    if (val.type.type === "Numeric") {
+                        console.log(val);
                         i = false;
                         sel.append($("<option>" + val.title +"</option>"));
                     }
@@ -162,18 +158,11 @@ $(document).ready(function ($) {
                 sel = $("<select id='numeral-number-sel'></select>");
                 var j = true;
                 $.each(allData.titles, function (l, val) {
-                    if (val.type === "Number") {
+                    if (val.type.type === "Numeric") {
                         j = false;
                         sel.append($("<option>" + val.title +"</option>"));
                     }
                 });
-                if (j) {
-                    sel.append($("<option>No other numeric column</option>"));
-                    sel.prop('disabled', true);
-                    createNumber.prop('disabled', true);
-                } else {
-                    createNumber.prop('disabled', false);
-                }
                 sel.change(function () {
                     showNewValues(firstValues[selectedColumn], 1);
                 });
@@ -186,6 +175,57 @@ $(document).ready(function ($) {
                 lab = $("<label for='type-number-sel'>Expression: </label>");
                 sel = $("<input type='text' id='type-number-sel'>");
                 numContent.append(lab, sel);
+                var expr = $("<select id='expresions'></select>");
+                var addExp = $("<option>Add expresion</option>");
+                expr.append(addExp);
+                var col = $("<select id='columns'</select>");
+                var addCol = $("<option>Add column</option>");
+                col.append(addCol);
+
+                col.change(function () {
+                    sel.val(sel.val() + col.val());
+                    col.val("Add column");
+                    showNewValues(firstValues[selectedColumn], 1);
+                });
+
+                expr.append($("<option>ABS(x)</option>"));
+                expr.append($("<option>SIGN(x)</option>"));
+                expr.append($("<option>GCD(x, y)</option>"));
+                expr.append($("<option>POWER(x, y)</option>"));
+                expr.append($("<option>PRODUCT(x, y)</option>"));
+                expr.append($("<option>SQRT(x)</option>"));
+                expr.append($("<option>QUOTIENT(x, y)</option>"));
+                expr.append($("<option>MOD(x, y)</option>"));
+
+                expr.change(function () {
+                    sel.val(sel.val() + expr.val());
+                    expr.val("Add expresion");
+                    showNewValues(firstValues[selectedColumn], 1);
+                });
+
+                sel.keyup(function () {
+                    showNewValues(firstValues[selectedColumn], 1);
+                    var text = $("#newValue1").text();
+                    if (!isNaN(text) && text.trim() !== "") {
+                        createNumber.prop("disabled", false);
+                    } else {
+                        createNumber.prop("disabled", true);
+                    }
+                });
+
+                $.each(allData.titles, function (key, val) {
+                    if (val.type.type === "Numeric") {
+                        var options = $("<option>" + val.title +"</option>");
+                        options.click(function () {
+                            sel.val(sel.val() + val.title);
+                        });
+                        col.append(options);
+                    }
+                });
+
+                numContent.append(expr);
+                numContent.append(col);
+                showNewValues(firstValues[selectedColumn], 1);
                 break;
         }
     });
@@ -196,27 +236,30 @@ $(document).ready(function ($) {
         switch (dateSelect.val()) {
             case "0":
                 dateContent.empty();
-                createDate.prop('disabled', false);
+                showNewValues(firstValues[selectedColumn], 2);
                 break;
             case "1":
                 dateContent.empty();
-                lab = $("<label for='numeral-number-sel'>Column: </label>");
-                sel = $("<select id='numeral-number-sel'></select>");
+                lab = $("<label for='date-number-sel'>Column: </label>");
+                sel = $("<select id='date-number-sel'></select>");
                 var i = true;
                 $.each(allData.titles, function (l, val) {
-                    if (val.type === "Number") {
+                    if (val.type.type === "Date") {
+                        console.log("val: ", val.type);
                         i = false;
                         sel.append($("<option>" + val.title +"</option>"));
                     }
                 });
                 if (i) {
-                    sel.append($("<option>No other numeric column</option>"));
+                    sel.append($("<option>No other date column</option>"));
                     sel.prop('disabled', true);
-                    createDate.prop('disabled', true);
-                } else {
-                    createDate.prop('disabled', false);
                 }
+
+                sel.change(function () {
+                    showNewValues(firstValues[selectedColumn], 2);
+                });
                 dateContent.append(lab, sel);
+                showNewValues(firstValues[selectedColumn], 2);
                 break;
         }
     });
@@ -279,6 +322,7 @@ $(document).ready(function ($) {
                     }
                     hideAll();
                 }
+                console.log(allData);
             },
             error: function () {
                 hideAll();
@@ -306,6 +350,9 @@ $(document).ready(function ($) {
         var textTable = $(".value-table-change");
         textTable.empty();
         var a = 0;
+        var expOk = true;
+        var unsupported = "";
+        var inputData = $("#type-number-sel").val();
         if (type === 1) {
             var fromWhat = $("#numeral-number-sel").val();
             console.log(fromWhat);
@@ -331,18 +378,39 @@ $(document).ready(function ($) {
                         }
                     }
                     break;
+                case "3":
+                    var text = inputData;
+                    textToEval = inputData;
+                    var titles = ["ABS", "SIGN", "GCD", "LCM", "POWER", "PRODUCT", "SQRT", "QUOTIENT", "MOD", "(", ")", "+", "-", "*", "/", "%", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ","];
+                    $.each(allData.titles, function (key, val) {
+                        if (val.type.type === "Numeric") {
+                            titles.push(val.title);
+                        }
+                    });
+                    console.log(titles);
+                    $.each(titles, function (key, val) {
+                        text = text.split(val).join("");
+                    });
+
+                    if (text.trim() !== "") {
+                        expOk = false;
+                        unsupported = text.trim();
+                    }
+
+                    console.log(text);
             }
         }
         textTable.append($("<tr><th colspan='2'>First values</th></tr>"));
         $.each(what, function (key, value2) {
             var modifyTableTrText = $("<tr></tr>");
-            var modifyTableTdText = $("<td></td>");
+            var modifyTableTdText = $("<td id='newValue" + key + "'></td>");
             var modifyTableTd2Text = $("<td></td>");
             modifyTableTd2Text.text(value2);
+            console.log(value2);
             if (type === 1) {
                 switch (numSelect.val()) {
                     case "0":
-                        modifyTableTdText.text((parseInt(value2) / a).toFixed(4));
+                        modifyTableTdText.text((parseInt(value2) / a).toFixed((parseInt($("#roundSel").val()))));
                         break;
                     case "1":
                         modifyTableTdText.text(parseInt(value2) + parseInt(firstValues[a][key]));
@@ -350,6 +418,24 @@ $(document).ready(function ($) {
                     case "2":
                         modifyTableTdText.text(parseInt(value2) - parseInt(firstValues[a][key]));
                         break;
+                    case "3":
+                        if (expOk) {
+                            var textToEval = inputData;
+                            try {
+                                $.each(allData.titles, function (key2, val) {
+                                    console.log(val.title, firstValues[key2][key]);
+                                    textToEval = textToEval.split(val.title).join(firstValues[key2][key]);
+                                });
+                                console.log(textToEval);
+                                modifyTableTdText.text(eval(textToEval));
+                            } catch (err) {
+                                modifyTableTdText.text("Invalid expression");
+                            }
+                        } else {
+                            modifyTableTdText.text("Unsupported char: " + unsupported);
+                        }
+                        break;
+
                 }
             } else if (type === 2) {
                 switch (dateSelect.val()) {
@@ -357,6 +443,7 @@ $(document).ready(function ($) {
                         modifyTableTdText.text(getDay(value2));
                         break;
                     case "1":
+                        modifyTableTdText.text(getDifference(value2, key));
                         break;
                 }
             } else if (type === 3) {
@@ -375,7 +462,7 @@ $(document).ready(function ($) {
                                 modifyTableTdText.text(value2);
                             }
                         } catch (err) {
-                            modifyTableTdText.text("");
+                            modifyTableTdText.text("Error");
                         }
                         break;
                 }
@@ -456,16 +543,27 @@ $(document).ready(function ($) {
                         all = all + parseInt(l);
                     });
                     console.log(all);
-                    sendActionToModify(1, "toPercentNew", "Numeric", keyToSend, all, title);
+                    sendActionToModify(1, "toPercentNew", "Numeric", keyToSend, all, title, $("#roundSel").val());
+                    hideAll();
                     break;
                 case "1":
                     sendActionToModify(1, "addColumnNew", "Numeric", keyToSend, addTo, title);
+                    hideAll();
                     break;
                 case "2":
                     sendActionToModify(1, "subtractColumnNew", "Numeric", keyToSend, addTo, title);
+                    hideAll();
+                    break;
+                case "3":
+                    var text = $("#newValue1").text();
+                    if (!isNaN(text) && text.trim() !== "") {
+                        sendActionToModify(1, "expressionNew", "Numeric", keyToSend, $("#type-number-sel").val(), title);
+                        hideAll();
+                    } else {
+                        console.log("Neposílám");
+                    }
                     break;
             }
-            hideAll();
         }
     });
 
@@ -558,7 +656,7 @@ $(document).ready(function ($) {
                 var format = "";
                 var numberSel = $("#type-number-sel").val();
                 if (numberSel.trim() !== "") {
-                    format = numberSel;
+                    format = numberSel.split("D").join("d").split("M").join("m");
                 } else {
                     format = $("#numeral-number-sel").val();
                 }
@@ -567,7 +665,11 @@ $(document).ready(function ($) {
 
     });
 
-    function sendActionToModify(isNew, action, type, firstColumn, parameter, parameter2) {
+    $("#continue").click(function () {
+        location.href = 'api/getData.php';
+    });
+
+    function sendActionToModify(isNew, action, type, firstColumn, parameter, parameter2, parameter3) {
         $("#spinner-modal").css("display", "block");
         $("#modal-background").css("display", "block");
         var formData = new FormData();
@@ -578,6 +680,9 @@ $(document).ready(function ($) {
         }
         if (parameter2) {
             formData.append("parameter2", parameter2);
+        }
+        if (parameter3) {
+            formData.append("parameter3", parameter3);
         }
         $.ajax({
             url: "api/modify.php",
@@ -606,7 +711,9 @@ $(document).ready(function ($) {
                                 break;
                         }
                         console.log("id: ", data.title.id);
-                        newLine(data.title.id, allData);
+                        console.log(allData.titles.length - 1, allData);
+                        newLine(allData.titles.length - 1, allData);
+                        console.log(allData);
                         break;
                     case 2:
                         allData.rows.splice(selectedColumn, 1);
@@ -746,29 +853,30 @@ $(document).ready(function ($) {
             switch (type.type) {
                 case "Numeric":
                     typeSelect.val(0);
+                    typeContent.empty();
                     showNewValues(firstValues[idArr[2]], 4);
                     break;
                 case "Text":
-                    showNewValues(firstValues[idArr[2]], 4);
                     typeSelect.val(2);
+                    typeContent.empty();
+                    showNewValues(firstValues[idArr[2]], 4);
                     break;
                 case "Date":
                     typeSelect.val(3);
                     typeContent.empty();
                     console.log("type 3");
-                    var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'h:m:s'];
+                    var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y'];
                     lab = $("<label for='numeral-number-sel'>Date format: </label>");
                     sel = $("<select id='numeral-number-sel' style='margin-bottom: 15px'></select>");
-                    sel.append($("<option value='d.m.Y'>dd.mm.yyyy</option>"));
-                    sel.append($("<option value='d/m/Y'>dd/mm/yyyy</option>"));
-                    sel.append($("<option value='d-m-Y'>dd-mm-yyyy</option>"));
-                    sel.append($("<option value='Y.m.d'>yyyy.mm.dd</option>"));
-                    sel.append($("<option value='Y/m/d'>yyyy/mm/dd</option>"));
-                    sel.append($("<option value='Y-m-d'>yyyy-mm-dd</option>"));
-                    sel.append($("<option value='m.d.Y'>mm.dd.yyyy</option>"));
-                    sel.append($("<option value='m/d/Y'>mm/dd/yyyy</option>"));
-                    sel.append($("<option value='m-d-Y'>mm-dd-yyyy</option>"));
-                    sel.append($("<option value='h:i:s'>hh:ii:ss</option>"));
+                    sel.append($("<option value='d.m.Y'>D.M.Y</option>"));
+                    sel.append($("<option value='d/m/Y'>D/M/Y</option>"));
+                    sel.append($("<option value='d-m-Y'>D-M-Y</option>"));
+                    sel.append($("<option value='Y.m.d'>Y.M.D</option>"));
+                    sel.append($("<option value='Y/m/d'>Y/M/D</option>"));
+                    sel.append($("<option value='Y-m-d'>Y-M-D</option>"));
+                    sel.append($("<option value='m.d.Y'>M.D.Y</option>"));
+                    sel.append($("<option value='m/d/Y'>M/D/Y</option>"));
+                    sel.append($("<option value='m-d-Y'>M-D-Y</option>"));
                     var isIn = false;
                     $.each(originalValues, function (l, val) {
                         if (val === allData.titles[idArr[2]].type.format) {
@@ -782,11 +890,10 @@ $(document).ready(function ($) {
 
                     if (!isIn && allData.titles[idArr[2]].type.format !== null) {
                         var format = allData.titles[idArr[2]].type.format;
-                        var days = format.replace('d', 'dd');
-                        var months = days.replace('m', 'mm');
-                        var years = months.replace('Y', 'yy');
+                        var days = format.replace('d', 'D');
+                        var months = days.replace('m', 'M');
                         sel.prop('disabled', true);
-                        sel2.val(years);
+                        sel2.val(months);
 
                     } else if (!isIn) {
                         sel.val(originalValues[0]);
@@ -863,6 +970,19 @@ $(document).ready(function ($) {
                     numSelect.val("0");
                     // showValues(firstValues[idArr[2]], 1);
                     numContent.empty();
+                    var labRound = $("<label for='roundSel'>Round precision:</label>");
+                    var selRound = $("<select id='roundSel'></select>");
+                    selRound.append($("<option value='0'>0</option>"));
+                    selRound.append($("<option value='1'>1</option>"));
+                    selRound.append($("<option value='2'>2</option>"));
+                    selRound.append($("<option value='3'>3</option>"));
+                    selRound.append($("<option value='4'>4</option>"));
+                    selRound.append($("<option value='5'>5</option>"));
+                    selRound.val("2");
+                    selRound.change(function () {
+                        showNewValues(firstValues[selectedColumn], 1);
+                    });
+                    numContent.append(labRound, selRound);
                     showNewValues(firstValues[idArr[2]], 1);
                     $("#modify-new-number").val(allData.titles[selectedColumn].title + " - new");
                     $("#modal-modify-numeric").css("display", "inline-block");
@@ -901,6 +1021,84 @@ $(document).ready(function ($) {
         weekday[5] = "Friday";
         weekday[6] = "Saturday";
         return weekday[date.getDay()];
+    }
+
+    function getDifference(day, k) {
+        var preDate = moment(day, allData.titles[selectedColumn].type.format.toUpperCase());
+        console.log(preDate);
+        var value = $("#date-number-sel").val();
+        var date = new Date(preDate);
+        var preDate2;
+        var date2;
+        $.each(allData.titles, function (key, val) {
+            if (value === val.title) {
+                var keys = Object.keys(allData.rows[key]);
+                console.log(keys[k], day);
+                preDate2 = moment(keys[k], val.type.format.toUpperCase());
+                console.log(preDate2);
+                date2 = new Date(preDate2);
+            }
+        });
+        console.log(date, date2);
+        console.log(date.getTime(), date2.getTime());
+        var seconds = ABS((parseInt(date.getTime()) - parseInt(date2.getTime())) / 1000);
+
+        var days = Math.floor(seconds / (3600*24));
+        seconds  -= days * 3600 * 24;
+        var hrs   = Math.floor(seconds / 3600);
+        seconds  -= hrs * 3600;
+        var mnts = Math.floor(seconds / 60);
+        seconds  -= mnts * 60;
+        return days + " days, " + hrs + " Hrs, " + mnts + " Minutes, " + seconds + " Seconds";
+    }
+
+    function ABS(x) {
+        if (x > 0) {
+            return x;
+        } else {
+            return -x;
+        }
+    }
+    
+    function SIGN(x) {
+        var toReturn = 0;
+        if (x === 0) {
+            toReturn = 0;
+        } else if (x < 0) {
+            toReturn = -1;
+        } else if (x > 0) {
+            toReturn = 1;
+        }
+        
+        return toReturn;
+    }
+    
+    function GCD(a, b) {
+        return (!b)?a:GCD(b,a%b);
+    }
+
+    function LCM(a, b) {
+        return (a * b) / GCD(a, b);
+    }
+
+    function POWER(x, y) {
+        return Math.pow(x, y);
+    }
+
+    function PRODUCT(x, y) {
+        return x * y;
+    }
+
+    function SQRT(x) {
+        return Math.pow(x, 2);
+    }
+
+    function QUOTIENT(x, y) {
+        return x / y;
+    }
+
+    function MOD(x, y) {
+        return x % y;
     }
 
 });
