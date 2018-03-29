@@ -76,6 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         header('Content-Type: application/json');
         echo json_encode(exprNew($_POST["column"], $_POST["parameter"], $_POST["parameter2"]));
 
+    }elseif ($_POST["action"] == "diffDateNew") {
+
+        http_response_code(200);
+        header('Content-Type: application/json');
+        echo json_encode(divDayNew($_POST["column"], $_POST["parameter"], $_POST["parameter2"]));
+
     } elseif($_POST["action"] == "delete") {
 
         http_response_code(200);
@@ -379,6 +385,69 @@ function toDaysNew($index, $parameter2) {
     $answer = ['row'=>$dataToSendBack, 'title'=>$e];
     $types = unserialize($_SESSION["types"]);
     $format = $types[$keyF]['format'];
+    array_push($types, ["type" => "Text"]);
+    $_SESSION["types"] = serialize($types);
+    return $answer;
+}
+
+function divDayNew($index, $index2, $parameter2) {
+    $fileNumber = unserialize($_SESSION["fileNumber"]);
+    $dataToSendBack = [];
+    $i = 0;
+    $count = 0;
+    $keyF = "";
+    $keyF2 = "";
+    while ($i <= $fileNumber) {
+        $csvParser = unserialize($_SESSION["data".$i]);
+        $count = count($csvParser->titles) -1;
+        array_push($csvParser->titles, $parameter2);
+        $keyF = array_search($index, $csvParser->titles);
+        $keyF2 = array_search($index2, $csvParser->titles);
+        $datetime = new DateTime();
+        $types = unserialize($_SESSION["types"]);
+        $format = $types[$keyF]['format'];
+        $format2 = $types[$keyF2]['format'];
+        foreach ($csvParser->data as $key => $row) {
+            $newDate = $datetime->createFromFormat($format, $row[$index]);
+            $newDate2 = $datetime->createFromFormat($format2, $row[$index2]);
+            $seconds = date_timestamp_get($newDate) - date_timestamp_get($newDate2);
+            $years = floor($seconds / (3600*24*365));
+            $seconds -= $years * 3600 * 24 * 365;
+            $days = floor($seconds / (3600*24));
+            $seconds  -= $days * 3600 * 24;
+            $hrs   = floor($seconds / 3600);
+            $seconds  -= $hrs * 3600;
+            $mnts = floor($seconds / 60);
+            $seconds  -= $mnts * 60;
+            $toReturn = "";
+            if ($years != 0) {
+                $toReturn = $toReturn.$years." years ";
+            }
+            if ($days != 0) {
+                $toReturn = $toReturn.$days." days ";
+            }
+            if ($hrs != 0) {
+                $toReturn = $toReturn.$hrs." Hrs ";
+            }
+            if ($mnts != 0) {
+                $toReturn = $toReturn.$mnts." Minutes ";
+            }
+            if ($seconds != 0) {
+                $toReturn = $toReturn.$seconds." Seconds";
+            }
+            $csvParser->data[$key][$parameter2] = $toReturn;
+            if ($dataToSendBack[$toReturn] == null) {
+                $dataToSendBack[$toReturn] = 1;
+            } else {
+                $dataToSendBack[$toReturn] = $dataToSendBack[$toReturn] + 1;
+            }
+        }
+        $_SESSION["data".$i] = serialize($csvParser);
+        $i++;
+    }
+    $e = ['title'=>$parameter2, 'id'=>$count];
+    $answer = ['row'=>$dataToSendBack, 'title'=>$e];
+    $types = unserialize($_SESSION["types"]);
     array_push($types, ["type" => "Text"]);
     $_SESSION["types"] = serialize($types);
     return $answer;

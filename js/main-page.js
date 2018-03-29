@@ -632,11 +632,11 @@ $(document).ready(function ($) {
             var keyToSend = allData.titles[selectedColumn].title;
             switch (action) {
                 case "0":
-                    sendActionToModify(1, "toDaysNew", "Date", keyToSend, title);
+                    sendActionToModify(1, "toDaysNew", "Text", keyToSend, title);
                     break;
                 case "1":
-                    var re = new RegExp(text);
-                    sendActionToModify(1, "regExNew", "Date", keyToSend, re, title);
+                    var secondKey = $("#date-number-sel").val();
+                    sendActionToModify(1, "diffDateNew", "Text", keyToSend, secondKey, title);
                     break;
             }
             hideAll();
@@ -1043,13 +1043,31 @@ $(document).ready(function ($) {
         console.log(date.getTime(), date2.getTime());
         var seconds = ABS((parseInt(date.getTime()) - parseInt(date2.getTime())) / 1000);
 
+        var years = Math.floor(seconds / (3600*24*365));
+        seconds -= years * 3600 * 24 * 365;
         var days = Math.floor(seconds / (3600*24));
         seconds  -= days * 3600 * 24;
         var hrs   = Math.floor(seconds / 3600);
         seconds  -= hrs * 3600;
         var mnts = Math.floor(seconds / 60);
         seconds  -= mnts * 60;
-        return days + " days, " + hrs + " Hrs, " + mnts + " Minutes, " + seconds + " Seconds";
+        var toReturn = "";
+        if (years != 0) {
+            toReturn = toReturn + years + " years ";
+        }
+        if (days != 0) {
+            toReturn = toReturn + days + " days ";
+        }
+        if (hrs != 0) {
+            toReturn = toReturn + hrs + " Hrs ";
+        }
+        if (mnts != 0) {
+            toReturn = toReturn + mnts + " Minutes ";
+        }
+        if (seconds != 0) {
+            toReturn = toReturn + seconds + " Seconds";
+        }
+        return toReturn;
     }
 
     function ABS(x) {
