@@ -210,7 +210,7 @@ class parseCSV {
      *
      * @var string
      */
-    public $input_encoding = 'ISO-8859-1';
+    public $input_encoding = 'UTF-8';
 
     /**
      * Output Encoding
@@ -218,7 +218,7 @@ class parseCSV {
      *
      * @var string
      */
-    public $output_encoding = 'ISO-8859-1';
+    public $output_encoding = 'UTF-8';
 
     /**
      * Whether to use mb_convert_encoding() instead of iconv().

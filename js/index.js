@@ -25,7 +25,6 @@ $(document).ready(function ($) {
         console.log("submiting", formData);
         var uploadDiv = $("#progress-upload");
         $("#modal-background").css("display", "block");
-        done = false;
         $.ajax({
             xhr: function()
             {
@@ -36,13 +35,6 @@ $(document).ready(function ($) {
                         var percentComplete = evt.loaded / evt.total;
                         $("#upload-percentage").text((percentComplete * 100).toFixed(0));
                         console.log(percentComplete);
-                        if (percentComplete === 1) {
-                            uploadDiv.append($("<h2>Processed <span id='rowsCompleted'>0</span> rows</h2>"));
-                            if (!done) {
-                                console.log("Pouštím");
-                                startTask();
-                            }
-                        }
                     }
                 }, false);
                 return xhr;
@@ -57,34 +49,13 @@ $(document).ready(function ($) {
                 uploadDiv.css("display", "none");
                 $("#modal-background").css("display", "none");
                 window.location = "main-page.html";
-                done = true;
             },
             error: function () {
                 uploadDiv.css("display", "none");
                 $("#modal-background").css("display", "none");
-                done = true;
                 alert("Network error");
             }
         });
     });
-
-    function startTask() {
-        $.ajax({
-            url: "api/upload-progress.php",
-            type: 'GET',
-            success: function (data) {
-                console.log(data);
-                $("#rowsCompleted").text(data);
-                setTimeout(function () {
-                    if (!done) {
-                        startTask();
-                    }
-                }, 1000)
-            },
-            error: function (e) {
-                console.log(e);
-            }
-        });
-    }
 
 });
