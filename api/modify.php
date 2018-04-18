@@ -593,25 +593,29 @@ function divDayNew($index, $index2, $parameter2) {
                 foreach ($csvParser->data as $key => $row) {
                     $newDate = $datetime->createFromFormat($format, $row[$index]);
                     $newDate2 = $datetime->createFromFormat($format2, $row[$index2]);
-                    $seconds = date_timestamp_get($newDate) - date_timestamp_get($newDate2);
-                    $days = floor($seconds / (3600*24));
-                    $seconds  -= $days * 3600 * 24;
-                    $hrs   = floor($seconds / 3600);
-                    $seconds  -= $hrs * 3600;
-                    $mnts = floor($seconds / 60);
-                    $seconds  -= $mnts * 60;
-                    $toReturn = "";
-                    if ($days != 0) {
-                        $toReturn = $toReturn.$days." d ";
-                    }
-                    if ($hrs != 0) {
-                        $toReturn = $toReturn.$hrs." h ";
-                    }
-                    if ($mnts != 0) {
-                        $toReturn = $toReturn.$mnts." m ";
-                    }
-                    if ($seconds != 0) {
-                        $toReturn = $toReturn.$seconds." s";
+                    if ($newDate && $newDate2) {
+                        $seconds = date_timestamp_get($newDate) - date_timestamp_get($newDate2);
+                        $days = floor($seconds / (3600*24));
+                        $seconds  -= $days * 3600 * 24;
+                        $hrs   = floor($seconds / 3600);
+                        $seconds  -= $hrs * 3600;
+                        $mnts = floor($seconds / 60);
+                        $seconds  -= $mnts * 60;
+                        $toReturn = "";
+                        if ($days != 0) {
+                            $toReturn = $toReturn.$days." d ";
+                        }
+                        if ($hrs != 0) {
+                            $toReturn = $toReturn.$hrs." h ";
+                        }
+                        if ($mnts != 0) {
+                            $toReturn = $toReturn.$mnts." m ";
+                        }
+                        if ($seconds != 0) {
+                            $toReturn = $toReturn.$seconds." s";
+                        }
+                    } else {
+                        $toReturn = "";
                     }
                     $csvParser->data[$key][$parameter2] = $toReturn;
                     if ($dataToSendBack[$toReturn] == null) {

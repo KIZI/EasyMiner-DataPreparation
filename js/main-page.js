@@ -124,6 +124,7 @@ $(document).ready(function ($) {
         switch (numSelect.val()) {
             case "0":
                 numContent.empty();
+                createNumber.prop('disabled', false);
                 numContent.append($("<p>Convert numeric value to percentage of sum of all values in selected column.</p>"));
                 var labRound = $("<label for='roundSel'>Round precision:</label>");
                 var selRound = $("<select id='roundSel'></select>");
@@ -253,14 +254,17 @@ $(document).ready(function ($) {
 
     dateSelect.change(function () {
         console.log("It works!");
+        var createDate = $("#modal-modify-date-new");
         switch (dateSelect.val()) {
             case "0":
                 dateContent.empty();
+                createDate.prop('disabled', false);
                 dateContent.append($("<p>Converts date to day of week.</p>"));
                 showNewValues(firstValues[selectedColumn], 2);
                 break;
             case "1":
                 dateContent.empty();
+                createDate.prop('disabled', false);
                 dateContent.append($("<p>Deduct selected column from currently opened column.</p>"));
                 lab = $("<label for='date-number-sel'>Column: </label>");
                 sel = $("<select id='date-number-sel'></select>");
@@ -275,6 +279,9 @@ $(document).ready(function ($) {
                 if (i) {
                     sel.append($("<option>No other date column</option>"));
                     sel.prop('disabled', true);
+                    createDate.prop('disabled', true);
+                } else {
+                    createDate.prop('disabled', false);
                 }
 
                 sel.change(function () {
@@ -285,6 +292,7 @@ $(document).ready(function ($) {
                 break;
             case "2":
                 dateContent.empty();
+                createDate.prop('disabled', false);
                 dateContent.append($("<p>Converts date to its timestamp value.</p>"));
                 showNewValues(firstValues[selectedColumn], 2);
                 break;
@@ -500,11 +508,18 @@ $(document).ready(function ($) {
                         modifyTableTdText.text((parseInt(value2) / allData.types[selectedColumn].count).toFixed((parseInt($("#roundSel").val()))));
                         break;
                     case "1":
-
-                        modifyTableTdText.text(parseInt(value2) + parseInt(firstValues[a][key]));
+                        if ($("#numeral-number-sel").val() !== "No other numeric column") {
+                            modifyTableTdText.text(parseInt(value2) + parseInt(firstValues[a][key]));
+                        } else {
+                            modifyTableTdText.text(value2);
+                        }
                         break;
                     case "2":
-                        modifyTableTdText.text(parseInt(value2) - parseInt(firstValues[a][key]));
+                        if ($("#numeral-number-sel").val() !== "No other numeric column") {
+                            modifyTableTdText.text(parseInt(value2) - parseInt(firstValues[a][key]));
+                        } else {
+                            modifyTableTdText.text(value2);
+                        }
                         break;
                     case "3":
                         if (expOk) {
@@ -547,7 +562,11 @@ $(document).ready(function ($) {
                         modifyTableTdText.text(getDay(value2));
                         break;
                     case "1":
-                        modifyTableTdText.text(getDifference(value2, key));
+                        if ($("#date-number-sel").val() !== "No other date column") {
+                            modifyTableTdText.text(getDifference(value2, key));
+                        } else {
+                            modifyTableTdText.text(value2);
+                        }
                         break;
                     case "2":
                         modifyTableTdText.text(getTimestamp(value2));
@@ -1111,6 +1130,7 @@ $(document).ready(function ($) {
                 case "Text":
                     textSelect.val("0");
                     textContent.empty();
+                    $("#modal-modify-text-new").prop('disabled', false);
                     textContent.append($("<p>Replace old part of text with new text.</p>"));
                     lab = $("<label for='type-text-sel'>What:</label>");
                     sel = $("<input type='text' id='type-text-sel'>");
@@ -1132,6 +1152,7 @@ $(document).ready(function ($) {
                 case "Numeric":
                     numSelect.val("0");
                     numContent.empty();
+                    $("#modal-modify-numeric-new").prop('disabled', false);
                     numContent.append($("<p>Convert numeric value to percentage of sum of all values in selected column.</p>"));
                     var labRound = $("<label for='roundSel'>Round precision:</label>");
                     var selRound = $("<select id='roundSel'></select>");
@@ -1158,6 +1179,7 @@ $(document).ready(function ($) {
                 case "Date":
                     dateSelect.val("0");
                     dateContent.empty();
+                    $("#modal-modify-date-new").prop('disabled', false);
                     dateContent.append($("<p>Converts date to day of week.</p>"));
                     showNewValues(firstValues[idArr[2]], 2);
                     $("#modify-new-date").val(allData.titles[selectedColumn].title + " - new");
