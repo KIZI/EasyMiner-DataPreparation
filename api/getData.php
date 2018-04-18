@@ -17,27 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 } else if ($_SERVER['REQUEST_METHOD'] == "GET") {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=data.csv');
-
-    $output = fopen('php://output', 'w');
-
-    $fileNumber = unserialize($_SESSION["fileNumber"]);
-
-    $csvParser = unserialize($_SESSION["data0"]);
-
-    fputcsv($output, $csvParser->titles);
-
-    $i = 0;
-    while ($i <= $fileNumber) {
-        $csvParser = unserialize($_SESSION["data".$i]);
-        foreach ($csvParser->data as $row) {
-            $arrToPush = [];
-            foreach ($row as $val) {
-                array_push($arrToPush, $val);
-            }
-            fputcsv($output, $arrToPush);
-        }
-        $i++;
-    }
+    $filePath = unserialize($_SESSION["fileName"]);
+    $output = fopen($filePath, 'r');
 } else {
     http_response_code(405);
 }

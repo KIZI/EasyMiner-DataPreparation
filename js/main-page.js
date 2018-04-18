@@ -35,6 +35,10 @@ $(document).ready(function ($) {
         window.location.href = "index.html"
     });
 
+    $("#download").click(function () {
+        location.href = 'api/getData.php';
+    });
+
     typeSelect.change(function () {
         switch (typeSelect.val()) {
             case "0":
@@ -55,9 +59,9 @@ $(document).ready(function ($) {
             case "3":
                 typeSelect.val(3);
                 typeContent.empty();
-                typeContent.append($("<p>Change type of column to date. Only columns with succesfully parsed date values can be changed to date type. You can see parsed value on right.</p>"));
+                typeContent.append($("<p>Change type of column to date. Only columns with succesfully parsed date values can be changed to date type. You can see parsed value on right. Use D for day, M for month, Y for year, H for hour, m for minute ans s for second.</p>"));
                 console.log("type 3");
-                var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y'];
+                var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'timestamp'];
                 lab = $("<label for='numeral-number-sel'>Date format: </label>");
                 sel = $("<select id='numeral-number-sel' style='margin-bottom: 15px'></select>");
                 sel.append($("<option value='d.m.Y'>D.M.Y</option>"));
@@ -147,7 +151,7 @@ $(document).ready(function ($) {
                 sel = $("<select id='numeral-number-sel'></select>");
                 var i = true;
                 $.each(allData.titles, function (l, val) {
-                    if (val.type.type === "Numeric") {
+                    if (val.type.type === "Numeric" && val.title !== allData.titles[selectedColumn].title) {
                         console.log(val);
                         i = false;
                         sel.append($("<option>" + val.title +"</option>"));
@@ -173,11 +177,18 @@ $(document).ready(function ($) {
                 sel = $("<select id='numeral-number-sel'></select>");
                 var j = true;
                 $.each(allData.titles, function (l, val) {
-                    if (val.type.type === "Numeric") {
+                    if (val.type.type === "Numeric" && val.title !== allData.titles[selectedColumn].title) {
                         j = false;
                         sel.append($("<option>" + val.title +"</option>"));
                     }
                 });
+                if (j) {
+                    sel.append($("<option>No other numeric column</option>"));
+                    sel.prop('disabled', true);
+                    createNumber.prop('disabled', true);
+                } else {
+                    createNumber.prop('disabled', false);
+                }
                 sel.change(function () {
                     showNewValues(firstValues[selectedColumn], 1);
                 });
@@ -255,7 +266,7 @@ $(document).ready(function ($) {
                 sel = $("<select id='date-number-sel'></select>");
                 var i = true;
                 $.each(allData.titles, function (l, val) {
-                    if (val.type.type === "Date") {
+                    if (val.type.type === "Date" && val.title !== allData.titles[selectedColumn].title) {
                         console.log("val: ", val.type);
                         i = false;
                         sel.append($("<option>" + val.title +"</option>"));
@@ -341,7 +352,7 @@ $(document).ready(function ($) {
                 sel2 = $("<select id='text-number-sel'></select>");
                 var i = true;
                 $.each(allData.titles, function (l, val) {
-                    if (val.type.type === "Text") {
+                    if (val.type.type === "Text" && val.title !== allData.titles[selectedColumn].title) {
                         console.log("val: ", val.type.type);
                         i = false;
                         sel2.append($("<option>" + val.title +"</option>"));
@@ -371,13 +382,14 @@ $(document).ready(function ($) {
             $("#modal-background").css("display", "none");
             $("#modal-confirm-delete").css("display", "none");
             $("#spinner-modal").css("display", "none");
+            $("#loading-background").css("display", "none");
         }
     }
 
     function getData() {
         loading = true;
         $("#spinner-modal").css("display", "block");
-        $("#modal-background").css("display", "block");
+        $("#loading-background").css("display", "block");
         $.ajax({
             url: "api/getData.php",
             processData: false,
@@ -488,6 +500,7 @@ $(document).ready(function ($) {
                         modifyTableTdText.text((parseInt(value2) / allData.types[selectedColumn].count).toFixed((parseInt($("#roundSel").val()))));
                         break;
                     case "1":
+
                         modifyTableTdText.text(parseInt(value2) + parseInt(firstValues[a][key]));
                         break;
                     case "2":
@@ -802,7 +815,7 @@ $(document).ready(function ($) {
 
     function sendActionToModify(isNew, action, type, firstColumn, parameter, parameter2, parameter3) {
         $("#spinner-modal").css("display", "block");
-        $("#modal-background").css("display", "block");
+        $("#loading-background").css("display", "block");
         loading = true;
         var formData = new FormData();
         formData.append("action", action);
@@ -1003,8 +1016,8 @@ $(document).ready(function ($) {
                 case "Date":
                     typeSelect.val(3);
                     typeContent.empty();
-                    typeContent.append($("<p>Change type of column to date. Only columns with succesfully parsed date values can be changed to date type. You can see parsed value on right.</p>"));
-                    var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y'];
+                    typeContent.append($("<p>Change type of column to date. Only columns with succesfully parsed date values can be changed to date type. You can see parsed value on right. Use D for day, M for month, Y for year, H for hour, m for minute ans s for second.</p>"));
+                    var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'timestamp'];
                     lab = $("<label for='numeral-number-sel'>Date format: </label>");
                     sel = $("<select id='numeral-number-sel' style='margin-bottom: 15px'></select>");
                     sel.append($("<option value='d.m.Y'>D.M.Y</option>"));
@@ -1198,7 +1211,6 @@ $(document).ready(function ($) {
         var format = allData.titles[selectedColumn].type.format;
         var newFormat = format.split("d").join("D").split("m").join("M").split("i").join("m");
         var preDate = moment(day, newFormat);
-        console.log(preDate);
         var value = $("#date-number-sel").val();
         var date = new Date(preDate);
         var preDate2;
@@ -1207,12 +1219,13 @@ $(document).ready(function ($) {
             if (value === val.title) {
                 var keys = Object.keys(allData.rows[key]);
                 console.log(keys[k], day);
-                preDate2 = moment(keys[k], val.type.format);
+                var format2 = val.type.format;
+                var newFormat2 = format2.split("d").join("D").split("m").join("M").split("i").join("m");
+                preDate2 = moment(keys[k], newFormat2);
                 console.log(preDate2);
                 date2 = new Date(preDate2);
             }
         });
-        console.log(date, date2);
         console.log(date.getTime(), date2.getTime());
         var seconds = ABS((parseInt(date.getTime()) - parseInt(date2.getTime())) / 1000);
 

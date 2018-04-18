@@ -55,6 +55,9 @@
                     <button class="button-prep" style="width: 300px !important;" id="continue">Continue</button>
                 </td>
                 <td>
+                    <button class="button-prep" style="width: 300px !important;" id="download">Download</button>
+                </td>
+                <td>
                     <button class="button-prep-danger" style="width: 300px !important;" id="go-back">Go back</button>
                 </td>
             </tr>
@@ -112,8 +115,8 @@
         <label for="sel-mod-num"></label>
         <select id="sel-mod-num">
             <option value="0">Convert to percentage</option>
-            <option value="1">Add to another numeric column</option>
-            <option value="2">Subtract from another numeric column</option>
+            <option value="1">Add value of another numeric column</option>
+            <option value="2">Subtract value of another numeric column</option>
             <option value="3">Excel expression</option>
         </select>
         <div id="modify-numeric-content" class="content-modal" style="position: relative"></div>
@@ -252,3 +255,4 @@
 </html>
 
 <div id="modal-background" class="modal-background"></div>
+<div id="loading-background" class="loading-background"></div>
