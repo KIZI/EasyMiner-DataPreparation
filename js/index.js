@@ -9,8 +9,17 @@ $(document).ready(function ($) {
     });
      */
 
+    if ($("#file").val() != null && $("#file").val() != "") {
+        $("#config-div").css("display", "inline-block");
+    }
+
     $("#file").change(function () {
         $("#config-div").css("display", "inline-block");
+    });
+
+    $(".hide").click(function () {
+        $("#alert-window").css("display", "none");
+        $("#modal-background").css("display", "none");
     });
 
     $("#upload-form").submit(function (event) {
@@ -18,11 +27,9 @@ $(document).ready(function ($) {
         console.log(this);
         var fileInputElement = document.getElementById("file");
         var formData = new FormData();
-        console.log(fileInputElement.files[0]);
         formData.append("csv", fileInputElement.files[0]);
         formData.append("encoding", $("#encoding").val());
         formData.append("separator", $("#separator").val());
-        console.log("submiting", formData);
         var uploadDiv = $("#progress-upload");
         $("#modal-background").css("display", "block");
         $.ajax({
@@ -35,6 +42,7 @@ $(document).ready(function ($) {
                         var percentComplete = evt.loaded / evt.total;
                         $("#upload-percentage").text((percentComplete * 100).toFixed(0));
                         console.log(percentComplete);
+                        $("#spinner-modal").css("display", "block");
                     }
                 }, false);
                 return xhr;
@@ -45,15 +53,19 @@ $(document).ready(function ($) {
             contentType: false,
             type: 'POST',
             success: function ( data ) {
+                $("#spinner-modal").css("display", "none");
                 console.log(data);
                 uploadDiv.css("display", "none");
-                $("#modal-background").css("display", "none");
                 window.location = "main-page.html";
             },
             error: function () {
+                $("#spinner-modal").css("display", "none");
                 uploadDiv.css("display", "none");
-                $("#modal-background").css("display", "none");
-                alert("Network error");
+                $("#modal-background-background").css("display", "block");
+                var alert = $("#alert-content");
+                alert.empty();
+                alert.append($("<p>Network error</p>"));
+                $("#alert-window").css("display", "block");
             }
         });
     });

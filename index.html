@@ -65,7 +65,7 @@
                             <label for="encoding" class="required">Encoding:</label>
                             <select id="encoding">
                                 <option>UTF-8</option>
-                                <option>WINDOWS-1252</option>
+                                <option>Windows-1252</option>
                                 <option>ASCII</option>
                             </select>
                         </td>
@@ -104,6 +104,13 @@
 <div id="progress-upload" class="modal-window">
     <h2>Uploading <span id="upload-percentage">0</span>%</h2>
 </div>
+
+<div id="alert-window" class="alert-window hide">
+    <div id="alert-content"></div>
+    <button style="margin: auto" class="button-prep" id="ok-button">Ok</button>
+</div>
+
+<div id="spinner-modal" class="loader"></div>
 
 </body>
 <script src="js/jquery-3.3.1.min.js" type="text/javascript"></script>

@@ -6,6 +6,8 @@ $(document).ready(function ($) {
     var firstValues = [];
     var loading = false;
 
+    var haveData = true;
+
     getData();
 
     var typeSelect = $("#type-select");
@@ -24,11 +26,6 @@ $(document).ready(function ($) {
 
     $(".hide").click(function () {
         hideAll();
-    });
-
-    $(".show-confirm").click(function () {
-        $("#modal-confirm-delete").css("display", "inline-block");
-        $("#modal-background").css("display", "inline-block");
     });
 
     $("#go-back").click(function () {
@@ -59,11 +56,11 @@ $(document).ready(function ($) {
             case "3":
                 typeSelect.val(3);
                 typeContent.empty();
-                typeContent.append($("<p>Change type of column to date. Only columns with succesfully parsed date values can be changed to date type. You can see parsed value on right. Use D for day, M for month, Y for year, H for hour, m for minute ans s for second.</p>"));
+                typeContent.append($("<p>Change type of column to date. Only columns with succesfully parsed date values can be changed to date type. You can see parsed value on right. Use D for day, M for month, Y for year, H for hour, m for minute and s for second.</p>"));
                 console.log("type 3");
-                var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'timestamp'];
-                lab = $("<label for='numeral-number-sel'>Date format: </label>");
-                sel = $("<select id='numeral-number-sel' style='margin-bottom: 15px'></select>");
+                var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'U'];
+                var lab = $("<label for='numeral-number-sel'>Date format: </label>");
+                var sel = $("<select id='numeral-number-sel' style='margin-bottom: 15px'></select>");
                 sel.append($("<option value='d.m.Y'>D.M.Y</option>"));
                 sel.append($("<option value='d/m/Y'>D/M/Y</option>"));
                 sel.append($("<option value='d-m-Y'>D-M-Y</option>"));
@@ -91,8 +88,9 @@ $(document).ready(function ($) {
                     var days = format.replace('d', 'D');
                     var months = days.replace('m', 'M');
                     var minutes = months.replace('i', 'm');
+                    var sec = months.replace("i", "m");
                     sel.prop('disabled', true);
-                    sel2.val(minutes);
+                    sel2.val(sec);
 
                 } else if (!isIn) {
                     sel.val(originalValues[0]);
@@ -120,11 +118,9 @@ $(document).ready(function ($) {
     });
 
     numSelect.change(function () {
-        var createNumber = $("#modal-modify-numeric-new");
         switch (numSelect.val()) {
             case "0":
                 numContent.empty();
-                createNumber.prop('disabled', false);
                 numContent.append($("<p>Convert numeric value to percentage of sum of all values in selected column.</p>"));
                 var labRound = $("<label for='roundSel'>Round precision:</label>");
                 var selRound = $("<select id='roundSel'></select>");
@@ -143,6 +139,7 @@ $(document).ready(function ($) {
                 selRound.change(function () {
                     showNewValues(firstValues[selectedColumn], 1);
                 });
+                numContent.append(labRound, selRound);
                 showNewValues(firstValues[selectedColumn], 1);
                 break;
             case "1":
@@ -161,9 +158,6 @@ $(document).ready(function ($) {
                 if (i) {
                     sel.append($("<option>No other numeric column</option>"));
                     sel.prop('disabled', true);
-                    createNumber.prop('disabled', true);
-                } else {
-                    createNumber.prop('disabled', false);
                 }
                 sel.change(function () {
                     showNewValues(firstValues[selectedColumn], 1);
@@ -174,8 +168,8 @@ $(document).ready(function ($) {
             case "2":
                 numContent.empty();
                 numContent.append($("<p>Deduct value of selected column from value of currently opened column</p>"));
-                lab = $("<label for='numeral-number-sel'>Column: </label>");
-                sel = $("<select id='numeral-number-sel'></select>");
+                var lab = $("<label for='numeral-number-sel'>Column: </label>");
+                var sel = $("<select id='numeral-number-sel'></select>");
                 var j = true;
                 $.each(allData.titles, function (l, val) {
                     if (val.type.type === "Numeric" && val.title !== allData.titles[selectedColumn].title) {
@@ -186,9 +180,6 @@ $(document).ready(function ($) {
                 if (j) {
                     sel.append($("<option>No other numeric column</option>"));
                     sel.prop('disabled', true);
-                    createNumber.prop('disabled', true);
-                } else {
-                    createNumber.prop('disabled', false);
                 }
                 sel.change(function () {
                     showNewValues(firstValues[selectedColumn], 1);
@@ -199,7 +190,6 @@ $(document).ready(function ($) {
             case "3":
                 numContent.empty();
                 numContent.append($("<p>Apply excel expression on columns. See different expressions in 'Add expression' select for help what arguments to use.</p>"));
-                createNumber.prop('disabled', false);
                 lab = $("<label for='type-number-sel'>Expression: </label>");
                 sel = $("<input type='text' id='type-number-sel'>");
                 numContent.append(lab, sel);
@@ -220,7 +210,7 @@ $(document).ready(function ($) {
                 expr.append($("<option>ABS(x)</option>"));
                 expr.append($("<option>SIGN(x)</option>"));
                 expr.append($("<option>GCD(x, y)</option>"));
-                expr.append($("<option>POWER(x, y)</option>"));
+                expr.append($("<option>POW(x, y)</option>"));
                 expr.append($("<option>PRODUCT(x, y)</option>"));
                 expr.append($("<option>SQRT(x)</option>"));
                 expr.append($("<option>QUOTIENT(x, y)</option>"));
@@ -254,20 +244,17 @@ $(document).ready(function ($) {
 
     dateSelect.change(function () {
         console.log("It works!");
-        var createDate = $("#modal-modify-date-new");
         switch (dateSelect.val()) {
             case "0":
                 dateContent.empty();
-                createDate.prop('disabled', false);
                 dateContent.append($("<p>Converts date to day of week.</p>"));
                 showNewValues(firstValues[selectedColumn], 2);
                 break;
             case "1":
                 dateContent.empty();
-                createDate.prop('disabled', false);
                 dateContent.append($("<p>Deduct selected column from currently opened column.</p>"));
-                lab = $("<label for='date-number-sel'>Column: </label>");
-                sel = $("<select id='date-number-sel'></select>");
+                var lab = $("<label for='date-number-sel'>Column: </label>");
+                var sel = $("<select id='date-number-sel'></select>");
                 var i = true;
                 $.each(allData.titles, function (l, val) {
                     if (val.type.type === "Date" && val.title !== allData.titles[selectedColumn].title) {
@@ -279,9 +266,6 @@ $(document).ready(function ($) {
                 if (i) {
                     sel.append($("<option>No other date column</option>"));
                     sel.prop('disabled', true);
-                    createDate.prop('disabled', true);
-                } else {
-                    createDate.prop('disabled', false);
                 }
 
                 sel.change(function () {
@@ -292,7 +276,6 @@ $(document).ready(function ($) {
                 break;
             case "2":
                 dateContent.empty();
-                createDate.prop('disabled', false);
                 dateContent.append($("<p>Converts date to its timestamp value.</p>"));
                 showNewValues(firstValues[selectedColumn], 2);
                 break;
@@ -305,10 +288,10 @@ $(document).ready(function ($) {
             case "0":
                 textContent.empty();
                 textContent.append($("<p>Replace old part of text with new text.</p>"));
-                lab = $("<label for='type-text-sel'>What: </label>");
-                sel = $("<input type='text' id='type-text-sel'>");
-                lab2 = $("<label for='type-text-sel2'>With what:</label>");
-                sel2 = $("<input type='text' id='type-text-sel2'>");
+                var lab = $("<label for='type-text-sel'>Search: </label>");
+                var sel = $("<input type='text' id='type-text-sel'>");
+                var lab2 = $("<label for='type-text-sel2'>Replace:</label>");
+                var sel2 = $("<input type='text' id='type-text-sel2'>");
                 sel.keyup(function () {
                     console.log("changing");
                     showNewValues(firstValues[selectedColumn], 3);
@@ -333,7 +316,7 @@ $(document).ready(function ($) {
                 textContent.append($("<p>Replace text with result of regular expression.</p>"));
                 lab = $("<label for='type-text-sel'>Expression: </label>");
                 sel = $("<input type='text' id='type-text-sel'>");
-                lab2 = $("<label for='type-text-sel2'>With what:</label>");
+                lab2 = $("<label for='type-text-sel2'>Replace:</label>");
                 sel2 = $("<input type='text' id='type-text-sel2'>");
                 sel.keyup(function () {
                     console.log("changing");
@@ -349,7 +332,7 @@ $(document).ready(function ($) {
             case "3":
                 textContent.empty();
                 textContent.append($("<p>Join selected column with currently opened column with separator.</p>"));
-                lab = $("<label for='type-text-sel'>Separator: </label>");
+                lab = $("<label for='type-text-sel'>Glue: </label>");
                 sel = $("<input type='text' id='type-text-sel'>");
                 sel.keyup(function () {
                     console.log("changing");
@@ -391,6 +374,7 @@ $(document).ready(function ($) {
             $("#modal-confirm-delete").css("display", "none");
             $("#spinner-modal").css("display", "none");
             $("#loading-background").css("display", "none");
+            $("#alert-window").css("display", "none");
         }
     }
 
@@ -405,10 +389,22 @@ $(document).ready(function ($) {
             type: 'POST',
             success: function ( data ) {
                 allData = data;
-                if (!data) {
+                if (data.rows === undefined) {
                     loading = false;
-                    hideAll();
-                    window.loation = "index.html";
+                    haveData = false;
+                    $("#spinner-modal").css("display", "none");
+                    var alert = $("#alert-content");
+                    alert.empty();
+                    alert.append($("<p>Data error. Check encoding and separator</p>"));
+                    $("#alert-window").css("display", "block");
+                } else if (data.msg) {
+                    loading = false;
+                    haveData = false;
+                    $("#spinner-modal").css("display", "none");
+                    var alert = $("#alert-content");
+                    alert.empty();
+                    alert.append($("<p>" + data.msg + "</p>"));
+                    $("#alert-window").css("display", "block");
                 } else {
                     console.log( "Data Loaded", data.titles);
                     for (var i = 0, len = data.titles.length; i < len; i++) {
@@ -421,8 +417,12 @@ $(document).ready(function ($) {
             },
             error: function () {
                 loading = false;
-                hideAll();
-                window.location = "index.html";
+                haveData = false;
+                $("#spinner-modal").css("display", "none");
+                var alert = $("#alert-content");
+                alert.empty();
+                alert.append($("<p>Network error</p>"));
+                $("#alert-window").css("display", "block");
             }
         });
     }
@@ -434,9 +434,9 @@ $(document).ready(function ($) {
         var expOk = true;
         var unsupported = "";
         var inputData = $("#type-number-sel").val();
+        console.log(inputData);
         if (type === 1) {
             var fromWhat = $("#numeral-number-sel").val();
-            console.log(fromWhat);
             switch (numSelect.val()) {
                 case "0":
                     break;
@@ -456,9 +456,11 @@ $(document).ready(function ($) {
                     break;
                 case "3":
                     var text = inputData;
-                    textToEval = inputData;
+                    if (text.charAt(0) === '=') {
+                        text = text.slice(1);
+                    }
                     var titles = [];
-                    var symbols = ["ABS", "SIGN", "GCD", "LCM", "POWER", "PRODUCT", "SQRT", "QUOTIENT", "MOD", "IF", "(", ")", "+", "-", "*", "/", "%", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "=", "<", ">"];
+                    var symbols = ["ABS", "SIGN", "GCD", "LCM", "POW", "PRODUCT", "SQRT", "QUOTIENT", "MOD", "IF", "(", ")", "+", "-", "*", "/", "%", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "<=", ">=", "==", "<", ">"];
                     $.each(allData.titles, function (key, val) {
                         if (val.type.type === "Numeric") {
                             titles.push(val.title);
@@ -501,24 +503,63 @@ $(document).ready(function ($) {
             var modifyTableTrText = $("<tr></tr>");
             var modifyTableTdText = $("<td id='newValue" + key + "'></td>");
             var modifyTableTd2Text = $("<td></td>");
-            modifyTableTd2Text.text(value2);
+            var empty = false;
+            if (value2 === "") {
+                modifyTableTd2Text.append($("<i>Empty value</i>"));
+                empty = true;
+            } else {
+                modifyTableTd2Text.text(value2);
+            }
             if (type === 1) {
                 switch (numSelect.val()) {
                     case "0":
-                        modifyTableTdText.text((parseInt(value2) / allData.types[selectedColumn].count).toFixed((parseInt($("#roundSel").val()))));
+                        if (!empty) {
+                            modifyTableTdText.text((parseInt(value2) / allData.types[selectedColumn].count).toFixed((parseInt($("#roundSel").val()))));
+                        } else {
+                            modifyTableTdText.text(0);
+                        }
                         break;
                     case "1":
-                        if ($("#numeral-number-sel").val() !== "No other numeric column") {
-                            modifyTableTdText.text(parseInt(value2) + parseInt(firstValues[a][key]));
+                        if (!empty) {
+                            var secondValue;
+
+                            if (firstValues[a][1] != null && firstValues[a][1] !== "") {
+                                secondValue = firstValues[a][1];
+                            }
+                            if (firstValues[a][0] != null && firstValues[a][0] !== "") {
+                                secondValue = firstValues[a][0];
+                            }
+                            if (firstValues[a][key] != null && firstValues[a][key] !== "") {
+                                secondValue = firstValues[a][key];
+                            }
+                            if ($("#numeral-number-sel").val() !== "No other numeric column" && $.isNumeric(value2) && $.isNumeric(secondValue)) {
+                                modifyTableTdText.text(Number(value2) + Number(secondValue));
+                            } else {
+                                modifyTableTdText.text(0);
+                            }
                         } else {
-                            modifyTableTdText.text(value2);
+                            modifyTableTdText.text(0);
                         }
                         break;
                     case "2":
-                        if ($("#numeral-number-sel").val() !== "No other numeric column") {
-                            modifyTableTdText.text(parseInt(value2) - parseInt(firstValues[a][key]));
+                        if (!empty) {
+                            var secondValue;
+                            if (firstValues[a][1] != null && firstValues[a][1] !== "") {
+                                secondValue = firstValues[a][1];
+                            }
+                            if (firstValues[a][0] != null && firstValues[a][0] !== "") {
+                                secondValue = firstValues[a][0];
+                            }
+                            if (firstValues[a][key] != null && firstValues[a][key] !== "") {
+                                secondValue = firstValues[a][key];
+                            }
+                            if ($("#numeral-number-sel").val() !== "No other numeric column" && $.isNumeric(value2) && $.isNumeric(secondValue)) {
+                                modifyTableTdText.text(Number(value2) - Number(secondValue));
+                            } else {
+                                modifyTableTdText.text(0);
+                            }
                         } else {
-                            modifyTableTdText.text(value2);
+                            modifyTableTdText.text(0);
                         }
                         break;
                     case "3":
@@ -530,27 +571,34 @@ $(document).ready(function ($) {
                                 textToEval = textToEval.slice(1);
                             }
 
-                            if (textToEval.trim() !== "") {
-                                try {
-                                    $.each(allData.titles, function (key2, val) {
-                                        console.log(val.title, firstValues[key2][key]);
-                                        var number = Number(firstValues[key2][key]);
-                                        if (!isNaN(number)) {
-                                            textToEval = textToEval.split("\"" + val.title + "\"").join(firstValues[key2][key]);
-                                        } else {
-                                            textToEval = textToEval.split("\"" + val.title + "\"").join(0);
-                                        }
-                                    });
-                                    console.log(textToEval);
-                                    modifyTableTdText.text(eval(textToEval));
-                                } catch (err) {
-                                    modifyTableTdText.text("Invalid expression");
-                                }
-                            } else {
-                                modifyTableTdText.text(value2);
+                            if (textToEval.trim() === "") {
+                                modifyTableTdText.text(0);
                             }
+
+                            try {
+                                $.each(allData.titles, function (key2, val) {
+                                    if ($.isNumeric(firstValues[key2][key])) {
+                                        textToEval = textToEval.split("\"" + val.title + "\"").join(firstValues[key2][key]);
+                                    } else {
+                                        textToEval = textToEval.split("\"" + val.title + "\"").join(0);
+                                    }
+                                });
+                                console.log(textToEval);
+                                var result = eval(textToEval);
+                                console.log(result);
+                                if (result === Infinity) {
+                                    modifyTableTdText.text(0);
+                                } else {
+                                    modifyTableTdText.text(result);
+                                }
+                            } catch (err) {
+                                console.log(err);
+                                modifyTableTdText.append($("<i>Invalid expression</i>"));
+                            }
+
                         } else {
-                            modifyTableTdText.text("Unsupported char: " + unsupported);
+                            console.log(2);
+                            modifyTableTdText.append($("<i>Unsupported char: " + unsupported + "</i>"));
                         }
                         break;
 
@@ -562,10 +610,20 @@ $(document).ready(function ($) {
                         modifyTableTdText.text(getDay(value2));
                         break;
                     case "1":
+                        var secondValue;
+                        if (firstValues[a][1] != null && firstValues[a][1] !== "") {
+                            secondValue = 1;
+                        }
+                        if (firstValues[a][0] != null && firstValues[a][0] !== "") {
+                            secondValue = 0;
+                        }
+                        if (firstValues[a][key] != null && firstValues[a][key] !== "") {
+                            secondValue = key;
+                        }
                         if ($("#date-number-sel").val() !== "No other date column") {
-                            modifyTableTdText.text(getDifference(value2, key));
+                            modifyTableTdText.text(getDifference(value2, secondValue));
                         } else {
-                            modifyTableTdText.text(value2);
+                            modifyTableTdText.append($("<i>Empty</i>"));
                         }
                         break;
                     case "2":
@@ -576,43 +634,70 @@ $(document).ready(function ($) {
                 var val2 = $("#type-text-sel2").val();
                 switch (textSelect.val()) {
                     case "0":
-                         modifyTableTdText.text(value2.split(val).join(val2));
+                        if (!empty) {
+                            var toAdd = value2.split(val).join(val2);
+                            if (toAdd.trim() === "") {
+                                modifyTableTdText.append($("<i>Empty value</i>"));
+                            } else {
+                                modifyTableTdText.text(value2.split(val).join(val2));
+                            }
+                        } else {
+                            modifyTableTdText.append($("<i>Empty value</i>"));
+                        }
                         break;
                     case "1":
-                        try {
-                            if (val !== "") {
-                                var re = new RegExp(val);
-                                var arr = value2.match(re) || [""];
-                                modifyTableTdText.text(arr[0]);
-                            } else {
-                                modifyTableTdText.text(value2);
+                        if (!empty) {
+                            try {
+                                if (val !== "") {
+                                    var re = new RegExp(val);
+                                    var arr = value2.match(re) || [""];
+                                    modifyTableTdText.text(arr[0]);
+                                } else {
+                                    modifyTableTdText.text(value2);
+                                }
+                            } catch (err) {
+                                modifyTableTdText.append($("<i>Invalid expression</i>"));
                             }
-                        } catch (err) {
-                            modifyTableTdText.text("Error");
+                        } else {
+                            modifyTableTdText.append($("<i>Empty value</i>"));
                         }
                         break;
                     case "2":
-                        try {
-                            if (val !== "") {
-                                var re = new RegExp(val, "g");
-                                console.log(re);
-                                console.log(val2);
-                                var outp = value2.replace(re, val2) || [""];
-                                modifyTableTdText.text(outp);
-                            } else {
-                                modifyTableTdText.text(value2);
+                        if (!empty) {
+                            try {
+                                if (val !== "") {
+                                    var re = new RegExp(val, "g");
+                                    console.log(re);
+                                    console.log(val2);
+                                    var outp = value2.replace(re, val2) || [""];
+                                    modifyTableTdText.text(outp);
+                                } else {
+                                    modifyTableTdText.text(value2);
+                                }
+                            } catch (err) {
+                                modifyTableTdText.append($("<i>Invalid expression</i>"));
                             }
-                        } catch (err) {
-                            modifyTableTdText.text("Error");
+                        } else {
+                            modifyTableTdText.append($("<i>Empty value</i>"));
                         }
                         break;
                     case "3":
+                        var secondValue;
+                        if (firstValues[a][1] != null && firstValues[a][1] !== "") {
+                            secondValue = firstValues[a][1];
+                        }
+                        if (firstValues[a][0] != null && firstValues[a][0] !== "") {
+                            secondValue = firstValues[a][0];
+                        }
+                        if (firstValues[a][key] != null && firstValues[a][key] === "") {
+                            secondValue = firstValues[a][key];
+                        }
                         var sel =  $("#text-number-sel").val();
                         if (sel !== "No other text column") {
-                            var text = "" + value2 + val + firstValues[a][key];
+                            var text = "" + value2 + val + secondValue;
                             modifyTableTdText.text(text);
                         } else {
-                            modifyTableTdText.text(value2);
+                            modifyTableTdText.append($("<i>Empty</i>"));
                         }
 
                 }
@@ -639,7 +724,7 @@ $(document).ready(function ($) {
                                     var date = new Date(value2 * 1000);
                                     modifyTableTdText.text(date);
                                 } catch (err) {
-                                    modifyTableTdText.text("Invalit date");
+                                    modifyTableTdText.text("Invalid date");
                                 }
                             } else {
                                 modifyTableTdText.text(moment(value2, preselected.toUpperCase(), true));
@@ -667,9 +752,19 @@ $(document).ready(function ($) {
             }
         });
         if (isIn) {
-            alert("Column with this title already exist");
+            loading = false;
+            $("#loading-background").css("display", "block");
+            var alert = $("#alert-content");
+            alert.empty();
+            alert.append($("<p>Column with this name already exist</p>"));
+            $("#alert-window").css("display", "block");
         } else if (title.trim() === "") {
-            alert("Missing column name");
+            loading = false;
+            $("#loading-background").css("display", "block");
+            var alert = $("#alert-content");
+            alert.empty();
+            alert.append($("<p>Missing column name</p>"));
+            $("#alert-window").css("display", "block");
         } else {
             var keyToSend = allData.titles[selectedColumn].title;
             switch (action) {
@@ -697,8 +792,12 @@ $(document).ready(function ($) {
                         sendActionToModify(1, "expressionNew", "Numeric", keyToSend, tx, title);
                         hideAll();
                     } else {
-                        alert("Invalid expression");
-                        console.log("Neposílám");
+                        loading = false;
+                        $("#loading-background").css("display", "block");
+                        var alert = $("#alert-content");
+                        alert.empty();
+                        alert.append($("<p>Invalid expression</p>"));
+                        $("#alert-window").css("display", "block");
                     }
                     break;
             }
@@ -717,9 +816,19 @@ $(document).ready(function ($) {
            }
         });
         if (isIn) {
-            alert("Column with this title already exist");
+            loading = false;
+            $("#loading-background").css("display", "block");
+            var alert = $("#alert-content");
+            alert.empty();
+            alert.append($("<p>Column with this name already exist</p>"));
+            $("#alert-window").css("display", "block");
         } else if (title.trim() === "") {
-            alert("Missing column name");
+            loading = false;
+            $("#loading-background").css("display", "block");
+            var alert = $("#alert-content");
+            alert.empty();
+            alert.append($("<p>Missing column name</p>"));
+            $("#alert-window").css("display", "block");
         } else {
             var keyToSend = allData.titles[selectedColumn].title;
             switch (action) {
@@ -754,9 +863,19 @@ $(document).ready(function ($) {
             }
         });
         if (isIn) {
-            alert("Column with this title already exist");
+            loading = false;
+            $("#loading-background").css("display", "block");
+            var alert = $("#alert-content");
+            alert.empty();
+            alert.append($("<p>Column with this name already exist</p>"));
+            $("#alert-window").css("display", "block");
         } else if (title.trim() === "") {
-            alert("Missing column name");
+            loading = false;
+            $("#loading-background").css("display", "block");
+            var alert = $("#alert-content");
+            alert.empty();
+            alert.append($("<p>Missing column name</p>"));
+            $("#alert-window").css("display", "block");
         } else {
             var keyToSend = allData.titles[selectedColumn].title;
             switch (action) {
@@ -790,7 +909,12 @@ $(document).ready(function ($) {
                 }
                 console.log(notNum);
                 if (notNum > 2) {
-                    alert("Cannot convert to number");
+                    loading = false;
+                    $("#loading-background").css("display", "block");
+                    var alert = $("#alert-content");
+                    alert.empty();
+                    alert.append($("<p>Cannot convert to number</p>"));
+                    $("#alert-window").css("display", "block");
                 } else {
                     sendActionToModify(3, "changeType", "Numeric", selectedColumn, "Numeric");
                 }
@@ -819,7 +943,12 @@ $(document).ready(function ($) {
                 }
                 console.log(notDate);
                 if (notDate > 2) {
-                    alert("Cannot convert to date");
+                    loading = false;
+                    $("#loading-background").css("display", "block");
+                    var alert = $("#alert-content");
+                    alert.empty();
+                    alert.append($("<p>Cannot convert to date</p>"));
+                    $("#alert-window").css("display", "block");
                 } else {
                     sendActionToModify(3, "changeType", "Date", selectedColumn, "Date", format);
                 }
@@ -830,6 +959,12 @@ $(document).ready(function ($) {
 
     $("#continue").click(function () {
         location.href = 'api/getData.php';
+    });
+
+    $("#alert-content").click(function () {
+        if (!haveData) {
+            location.href = 'index.html';
+        }
     });
 
     function sendActionToModify(isNew, action, type, firstColumn, parameter, parameter2, parameter3) {
@@ -856,76 +991,98 @@ $(document).ready(function ($) {
             type: 'POST',
             success: function (data) {
                 try {
-                    switch (isNew) {
-                        case 0:
-                            allData.rows[selectedColumn] = data;
-                            changeHistogram();
-                            break;
-                        case 1:
-                            allData.rows.push(data.row);
-                            allData.titles.push(data.title);
-                            switch (type) {
-                                case "Numeric":
-                                    allData.types.push({'type': 'Numeric'});
-                                    break;
-                                case "Text":
-                                    allData.types.push({'type': 'Text'});
-                                    break;
-                                case "Date":
-                                    allData.types.push({'type': 'Date', 'format': parameter});
-                                    break;
-                            }
-                            console.log(allData.titles.length - 1, allData);
-                            newLine(allData.titles.length - 1, allData);
-                            console.log(allData);
-                            break;
-                        case 2:
-                            allData.rows.splice(selectedColumn, 1);
-                            allData.titles.splice(selectedColumn, 1);
-                            allData.types.splice(selectedColumn, 1);
-                            console.log(allData);
-                            var infoTable = $("#info-table");
-                            infoTable.empty();
-                            var th = $("<tr><th>Atribute name</th><th>Data type</th><th>Number of unique values</th><th></th><th></th></tr>");
-                            infoTable.append(th);
-                            firstValues = [];
-                            for (var i = 0, len = allData.titles.length; i < len; i++) {
-                                newLine(i, allData);
-                            }
-                            break;
-                        case 3:
-                            switch (type) {
-                                case "Numeric":
-                                    allData.types[selectedColumn] = {'type': 'Numeric'};
-                                    break;
-                                case "Text":
-                                    allData.types[selectedColumn] = {'type': 'Text'};
-                                    break;
-                                case "Date":
-                                    allData.types[selectedColumn] = {'type': 'Date', 'format': parameter};
-                                    break;
-                            }
+                    if (data.msg !== undefined) {
+                        if (data.msg === "No data provided") {
+                            haveData = false;
+                        }
+                        loading = false;
+                        $("#spinner-modal").css("display", "none");
+                        var alert = $("#alert-content");
+                        alert.empty();
+                        alert.append($("<p>" + data.msg + "</p>"));
+                        $("#alert-window").css("display", "block");
+                    } else {
+                        switch (isNew) {
+                            case 0:
+                                allData.rows[selectedColumn] = data;
+                                changeHistogram();
+                                break;
+                            case 1:
+                                allData.rows.push(data.row);
+                                allData.titles.push(data.title);
+                                switch (type) {
+                                    case "Numeric":
+                                        allData.types.push({'type': 'Numeric', 'count': data.type.count});
+                                        break;
+                                    case "Text":
+                                        allData.types.push({'type': 'Text'});
+                                        break;
+                                    case "Date":
+                                        allData.types.push({'type': 'Date', 'format': parameter2});
+                                        break;
+                                }
+                                console.log(allData.titles.length - 1, allData);
+                                newLine(allData.titles.length - 1, allData);
+                                console.log(allData);
+                                break;
+                            case 2:
+                                allData.rows.splice(selectedColumn, 1);
+                                allData.titles.splice(selectedColumn, 1);
+                                allData.types.splice(selectedColumn, 1);
+                                console.log(allData);
+                                var infoTable = $("#info-table");
+                                infoTable.empty();
+                                var th = $("<tr><th>Atribute name</th><th>Data type</th><th>Number of unique values</th><th></th><th></th></tr>");
+                                infoTable.append(th);
+                                firstValues = [];
+                                for (var i = 0, len = allData.titles.length; i < len; i++) {
+                                    newLine(i, allData);
+                                }
+                                break;
+                            case 3:
+                                switch (type) {
+                                    case "Numeric":
+                                        allData.types[selectedColumn] = {'type': 'Numeric', 'count': data.count};
+                                        break;
+                                    case "Text":
+                                        allData.types[selectedColumn] = {'type': 'Text'};
+                                        break;
+                                    case "Date":
+                                        allData.types[selectedColumn] = {'type': 'Date', 'format': parameter2};
+                                        break;
+                                }
 
-                            var infoTable = $("#info-table");
-                            infoTable.empty();
-                            var th = $("<tr><th>Atribute name</th><th>Data type</th><th>Number of unique values</th><th></th><th></th></tr>");
-                            infoTable.append(th);
-                            firstValues = [];
-                            for (var i = 0, len = allData.titles.length; i < len; i++) {
-                                newLine(i, allData);
-                            }
-                            break;
+                                var infoTable = $("#info-table");
+                                infoTable.empty();
+                                var th = $("<tr><th>Atribute name</th><th>Data type</th><th>Number of unique values</th><th></th><th></th></tr>");
+                                infoTable.append(th);
+                                firstValues = [];
+                                for (var i = 0, len = allData.titles.length; i < len; i++) {
+                                    newLine(i, allData);
+                                }
+                                break;
+                        }
+                        console.log("hiding");
+                        loading = false;
+                        hideAll();
                     }
                 } catch (err) {
-                    alert("Server error");
+                    console.log(err);
+                    loading = false;
+                    $("#spinner-modal").css("display", "none");
+                    var alert2 = $("#alert-content");
+                    alert2.empty();
+                    alert2.append($("<p>Network error</p>"));
+                    $("#alert-window").css("display", "block");
                 }
-                loading = false;
-                hideAll();
             },
             error: function () {
                 loading = false;
-                hideAll();
-                alert("Network error");
+                $("#spinner-modal").css("display", "none");
+                var alert = $("#alert-content");
+                alert.empty();
+                alert.append($("<p>Network error</p>"));
+                $("#alert-window").css("display", "block");
             }
         });
 
@@ -990,23 +1147,22 @@ $(document).ready(function ($) {
         var div = $("<div class='histogram' id='histogram-" + i + "'></div>");
         var m = 0;
         $.each(data.rows[i], function (l, val) {
+            var hisVal = l;
+            if (l === "" || l === null) {
+                hisVal = "Empty Value"
+            }
             var item = $("<span></span>");
             item.addClass("histogram-item");
             var heightPrc = (parseInt(val) / biggest) * 100;
             item.css("height", heightPrc + "%").css("min-height", "1px").css("margin-botton", "0px").css("width", widthOfItem + "%");
-            item.prop("title", val + ", " + l);
+            item.prop("title", val + ", " + hisVal);
             div.append(item);
             if (m < 11) {
                 var toAdd;
-                if(l === "") {
-                    toAdd = "\"\" - Empty Value"
-                } else {
-                    toAdd = l;
-                }
                 if(firstValues[i] == null) {
                     firstValues[i] = [];
                 }
-                firstValues[i].push(toAdd);
+                firstValues[i].push(l);
                 m++;
 
             }
@@ -1036,7 +1192,7 @@ $(document).ready(function ($) {
                     typeSelect.val(3);
                     typeContent.empty();
                     typeContent.append($("<p>Change type of column to date. Only columns with succesfully parsed date values can be changed to date type. You can see parsed value on right. Use D for day, M for month, Y for year, H for hour, m for minute ans s for second.</p>"));
-                    var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'timestamp'];
+                    var originalValues = ['d.m.Y', 'd/m/Y', 'd-m-Y', 'Y.m.d', 'Y/m/d', 'Y-m-d', 'm.d.Y', 'm/d/Y', 'm-d-Y', 'U'];
                     lab = $("<label for='numeral-number-sel'>Date format: </label>");
                     sel = $("<select id='numeral-number-sel' style='margin-bottom: 15px'></select>");
                     sel.append($("<option value='d.m.Y'>D.M.Y</option>"));
@@ -1064,8 +1220,9 @@ $(document).ready(function ($) {
                         var format = allData.titles[idArr[2]].type.format;
                         var days = format.replace('d', 'D');
                         var months = days.replace('m', 'M');
+                        var sec = months.replace("i", "m");
                         sel.prop('disabled', true);
-                        sel2.val(months);
+                        sel2.val(sec);
 
                     } else if (!isIn) {
                         sel.val(originalValues[0]);
@@ -1112,6 +1269,7 @@ $(document).ready(function ($) {
         var td5 = $("<td></td>");
         var button1 = $("<button class='button-prep' id='"+ type.type + "-modify-" + i +"'>Modify</button>");
         var button2 = $("<button class='button-prep-danger show-confirm' id='" + type.type + "-delete-" + i + "'>Delete</button>");
+        /*
         textContent.empty();
         lab = $("<label for='type-text-sel'>To remove: </label>");
         sel = $("<input type='text' id='type-text-sel'>");
@@ -1121,6 +1279,7 @@ $(document).ready(function ($) {
         });
         textContent.append(lab, sel);
         showNewValues(firstValues[selectedColumn], 3);
+        */
         button1.click(function (event) {
             console.log("clicked");
             var id = event.target.id;
@@ -1132,10 +1291,10 @@ $(document).ready(function ($) {
                     textContent.empty();
                     $("#modal-modify-text-new").prop('disabled', false);
                     textContent.append($("<p>Replace old part of text with new text.</p>"));
-                    lab = $("<label for='type-text-sel'>What:</label>");
-                    sel = $("<input type='text' id='type-text-sel'>");
-                    lab2 = $("<label for='type-text-sel2'>With what:</label>");
-                    sel2 = $("<input type='text' id='type-text-sel2'>");
+                    var lab = $("<label for='type-text-sel'>Search:</label>");
+                    var sel = $("<input type='text' id='type-text-sel'>");
+                    var lab2 = $("<label for='type-text-sel2'>Replace:</label>");
+                    var sel2 = $("<input type='text' id='type-text-sel2'>");
                     sel.keyup(function () {
                         console.log("changing");
                         showNewValues(firstValues[selectedColumn], 3);
@@ -1191,12 +1350,30 @@ $(document).ready(function ($) {
             var id = event.target.id;
             var idArr = id.split("-");
             selectedColumn = idArr[2];
-            sendActionToModify(2, "delete", "", allData.titles[selectedColumn].title);
+            var del = $("#delete");
+            del.empty();
+            del.append("<h2>Delete " + allData.titles[selectedColumn].title +"?</h2>")
+            $("#modal-confirm-delete").css("display", "block");
+            $("#modal-background").css("display", "block");
         });
         td5.append(button1, button2);
         newTr.append(td5);
         $("#info-table").append(newTr);
     }
+
+    $("#conf-del").click(function () {
+        hideAll();
+        sendActionToModify(2, "delete", "", allData.titles[selectedColumn].title);
+    });
+
+    $("#ok-button").click(function () {
+        if(!haveData) {
+            location.href = "index.html";
+        }
+        $("#spinner-modal").css("display", "none");
+        $("#loading-background").css("display", "none");
+        $("#alert-window").css("display", "none");
+    });
 
     function getDay(day) {
         console.log(allData.titles[selectedColumn].type);
@@ -1204,16 +1381,20 @@ $(document).ready(function ($) {
         var newFormat = format.split("d").join("D").split("m").join("M").split("i").join("m");
         var preDate = moment(day, newFormat);
         var date = new Date(preDate);
-        console.log("date:", date, preDate);
-        var weekday = new Array(7);
-        weekday[0] = "Sunday";
-        weekday[1] = "Monday";
-        weekday[2] = "Tuesday";
-        weekday[3] = "Wednesday";
-        weekday[4] = "Thursday";
-        weekday[5] = "Friday";
-        weekday[6] = "Saturday";
-        return weekday[date.getDay()];
+        if (date) {
+            console.log("date:", date, preDate);
+            var weekday = new Array(7);
+            weekday[0] = "Sunday";
+            weekday[1] = "Monday";
+            weekday[2] = "Tuesday";
+            weekday[3] = "Wednesday";
+            weekday[4] = "Thursday";
+            weekday[5] = "Friday";
+            weekday[6] = "Saturday";
+            return weekday[date.getDay()];
+        } else {
+            return "";
+        }
     }
 
     function getTimestamp(day) {
@@ -1230,6 +1411,7 @@ $(document).ready(function ($) {
     }
 
     function getDifference(day, k) {
+        console.log(k);
         var format = allData.titles[selectedColumn].type.format;
         var newFormat = format.split("d").join("D").split("m").join("M").split("i").join("m");
         var preDate = moment(day, newFormat);
@@ -1248,32 +1430,37 @@ $(document).ready(function ($) {
                 date2 = new Date(preDate2);
             }
         });
-        console.log(date.getTime(), date2.getTime());
-        var seconds = ABS((parseInt(date.getTime()) - parseInt(date2.getTime())) / 1000);
 
-        var years = Math.floor(seconds / (3600*24*365));
-        seconds -= years * 3600 * 24 * 365;
-        var days = Math.floor(seconds / (3600*24));
-        seconds  -= days * 3600 * 24;
-        var hrs   = Math.floor(seconds / 3600);
-        seconds  -= hrs * 3600;
-        var mnts = Math.floor(seconds / 60);
-        seconds  -= mnts * 60;
-        var toReturn = "";
-        if (years != 0) {
-            toReturn = toReturn + years + " years ";
-        }
-        if (days != 0) {
-            toReturn = toReturn + days + " days ";
-        }
-        if (hrs != 0) {
-            toReturn = toReturn + hrs + " Hrs ";
-        }
-        if (mnts != 0) {
-            toReturn = toReturn + mnts + " Minutes ";
-        }
-        if (seconds != 0) {
-            toReturn = toReturn + seconds + " Seconds";
+        if (date && date2) {
+            console.log(date.getTime(), date2.getTime());
+            var seconds = ABS((parseInt(date.getTime()) - parseInt(date2.getTime())) / 1000);
+
+            if (seconds === 0) {
+                toReturn = "0 Seconds"
+            } else {
+
+                var days = Math.floor(seconds / (3600 * 24));
+                seconds -= days * 3600 * 24;
+                var hrs = Math.floor(seconds / 3600);
+                seconds -= hrs * 3600;
+                var mnts = Math.floor(seconds / 60);
+                seconds -= mnts * 60;
+                var toReturn = "";
+                if (days !== 0) {
+                    toReturn = toReturn + days + " d ";
+                }
+                if (hrs !== 0) {
+                    toReturn = toReturn + hrs + " h ";
+                }
+                if (mnts !== 0) {
+                    toReturn = toReturn + mnts + " m ";
+                }
+                if (seconds !== 0) {
+                    toReturn = toReturn + seconds + " s";
+                }
+            }
+        } else {
+            toReturn = "";
         }
         return toReturn;
     }
@@ -1307,7 +1494,7 @@ $(document).ready(function ($) {
         return (a * b) / GCD(a, b);
     }
 
-    function POWER(x, y) {
+    function POW(x, y) {
         return Math.pow(x, y);
     }
 

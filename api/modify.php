@@ -98,7 +98,48 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 }
 
 function convertToPercentageNew($index, $parameter, $parameter2, $parameter3) {
-    $filePath = unserialize($_SESSION["fileName"]);
+
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Numeric") {
+            $answer = ["msg"=>"Selected column is not numeric type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (!is_numeric($parameter)) {
+        $answer = ["msg"=>"Divisor is not a number"];
+        return $answer;
+    }
+
+    if (!is_numeric($parameter3)) {
+        $answer = ["msg"=>"Round precision have to be number"];
+        return $answer;
+    }
+
+    if (is_numeric($parameter3)) {
+        if ($parameter3 < 0 || $parameter3 > 30) {
+            $answer = ["msg"=>"Round precision have to be between 0 and 30"];
+            return $answer;
+        }
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -106,7 +147,6 @@ function convertToPercentageNew($index, $parameter, $parameter2, $parameter3) {
 
     $first = true;
     $firstHeads = [];
-    $echo = true;
 
     if ($reading) {
         while (($line = fgets($reading)) !== false) {
@@ -117,16 +157,13 @@ function convertToPercentageNew($index, $parameter, $parameter2, $parameter3) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
-                    $changedValue = round(($row[$index] / $parameter) * 100, (int)$parameter3)."";
+                    try {
+                        $changedValue = round(($row[$index] / $parameter) * 100, (int)$parameter3)."";
+                    } catch (Exception $er) {
+                        $changedValue = 0;
+                    }
                     $csvParser->data[$key][$parameter2] = $changedValue;
                     if ($dataToSendBack[$changedValue] == null) {
                         $dataToSendBack[$changedValue] = 1;
@@ -140,22 +177,72 @@ function convertToPercentageNew($index, $parameter, $parameter2, $parameter3) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $countAll = 0;
+    foreach ($dataToSendBack as $item => $z) {
+        if (is_numeric($item)) {
+            $countAll = $countAll + $item;
+        }
+    }
+
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
-    $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
-    array_push($types, ["type" => "Numeric"]);
-    $_SESSION["types"] = serialize($types);
+    $answer = ['row'=>$dataToSendBack, 'title'=>$e, "type" => ["type" => "Numeric", "count" => $countAll]];
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    array_push($types, ["type" => "Numeric", "count" => $countAll]);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function addColumnNew($index, $parameter, $parameter2) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Numeric") {
+            $answer = ["msg"=>"Selected column is not numeric type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (in_array($parameter, $titles)) {
+        $type = array_search($parameter, $titles);
+        if ($types[$type]["type"] != "Numeric") {
+            $answer = ["msg"=>"Second column is not numeric type"];
+            return $answer;
+        }
+    }
+
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -173,16 +260,13 @@ function addColumnNew($index, $parameter, $parameter2) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
-                    $changedValue = ($row[$index] + $row[$parameter]);
+                    if (is_numeric($row[$index]) && is_numeric($row[$parameter])) {
+                        $changedValue = ($row[$index] + $row[$parameter]);
+                    } else {
+                        $changedValue = 0;
+                    }
                     $csvParser->data[$key][$parameter2] = $changedValue;
                     if ($dataToSendBack[$changedValue] == null) {
                         $dataToSendBack[$changedValue] = 1;
@@ -196,22 +280,71 @@ function addColumnNew($index, $parameter, $parameter2) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $countAll = 0;
+    foreach ($dataToSendBack as $item => $z) {
+        if (is_numeric($item)) {
+            $countAll = $countAll + $item;
+        }
+    }
+
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
-    $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
-    array_push($types, ["type" => "Numeric"]);
-    $_SESSION["types"] = serialize($types);
+    $answer = ['row'=>$dataToSendBack, 'title'=>$e, "type" => ["type" => "Numeric", "count" => $countAll]];
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    array_push($types, ["type" => "Numeric", "count" => $countAll]);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function subtractColumnNew($index, $parameter, $parameter2) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Numeric") {
+            $answer = ["msg"=>"Selected column is not numeric type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (in_array($parameter, $titles)) {
+        $type = array_search($parameter, $titles);
+        if ($types[$type]["type"] != "Numeric") {
+            $answer = ["msg"=>"Second column is not numeric type"];
+            return $answer;
+        }
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -229,16 +362,13 @@ function subtractColumnNew($index, $parameter, $parameter2) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
-                    $changedValue = ($row[$index] - $row[$parameter]);
+                    if (is_numeric($row[$index]) && is_numeric($row[$parameter])) {
+                        $changedValue = ($row[$index] - $row[$parameter]);
+                    } else {
+                        $changedValue = 0;
+                    }
                     $csvParser->data[$key][$parameter2] = $changedValue;
                     if ($dataToSendBack[$changedValue] == null) {
                         $dataToSendBack[$changedValue] = 1;
@@ -252,22 +382,79 @@ function subtractColumnNew($index, $parameter, $parameter2) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $countAll = 0;
+    foreach ($dataToSendBack as $item => $z) {
+        if (is_numeric($item)) {
+            $countAll = $countAll + $item;
+        }
+    }
+
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
-    $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
-    array_push($types, ["type" => "Numeric"]);
-    $_SESSION["types"] = serialize($types);
+    $answer = ['row'=>$dataToSendBack, 'title'=>$e, "type" => ["type" => "Numeric", "count" => $countAll]];
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    array_push($types, ["type" => "Numeric", "count" => $countAll]);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function removeNew($index, $parameter, $parameter2, $parameter3) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Text") {
+            $answer = ["msg"=>"Selected column is not text type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (!$parameter || $parameter == "") {
+        $answer = ["msg"=>"No search value selected"];
+        return $answer;
+    } else {
+        if (strlen($parameter) > 250) {
+            $answer = ["msg"=>"Search parameter can be only 250 characters long"];
+            return $answer;
+        }
+    }
+
+    if (strlen($parameter3) > 250) {
+        $answer = ["msg"=>"Replace parameter can be only 250 characters long"];
+        return $answer;
+    }
+
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -285,13 +472,6 @@ function removeNew($index, $parameter, $parameter2, $parameter3) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
                     $changedValue = str_replace($parameter, $parameter3, $row[$index]);
@@ -308,22 +488,71 @@ function removeNew($index, $parameter, $parameter2, $parameter3) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
     $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
-    array_push($types, ["type" => "Numeric"]);
-    $_SESSION["types"] = serialize($types);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    array_push($types, ["type" => "Text"]);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function regExNew($index, $parameter, $parameter2) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Text") {
+            $answer = ["msg"=>"Selected column is not numeric type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (!$parameter || $parameter == "") {
+        $answer = ["msg"=>"No search expression selected"];
+        return $answer;
+    } else {
+        if (strlen($parameter) > 250) {
+            $answer = ["msg"=>"Search parameter can be only 250 characters long"];
+            return $answer;
+        }
+
+        if (preg_match($parameter, null) === false) {
+            $answer = ["msg"=>"Search expression is not valid regular expression"];
+            return $answer;
+        }
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -341,13 +570,6 @@ function regExNew($index, $parameter, $parameter2) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
                     preg_match($parameter, $row[$index], $matches);
@@ -364,22 +586,76 @@ function regExNew($index, $parameter, $parameter2) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
     $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
     array_push($types, ["type" => "Text"]);
-    $_SESSION["types"] = serialize($types);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function regExRepNew($index, $parameter, $parameter2, $parameter3) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Text") {
+            $answer = ["msg"=>"Selected column is not text type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (!$parameter || $parameter == "") {
+        $answer = ["msg"=>"No search expression selected"];
+        return $answer;
+    } else {
+        if (strlen($parameter) > 250) {
+            $answer = ["msg"=>"Search parameter can be only 250 characters long"];
+            return $answer;
+        }
+
+        if (preg_match($parameter, null) === false) {
+            $answer = ["msg"=>"Search expression is not valid regular expression"];
+            return $answer;
+        }
+    }
+
+    if (strlen($parameter3) > 250) {
+        $answer = ["msg"=>"Replace parameter can be only 250 characters long"];
+        return $answer;
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -397,13 +673,6 @@ function regExRepNew($index, $parameter, $parameter2, $parameter3) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
                     $changedValue = preg_replace($parameter, $parameter3, $row[$index]);
@@ -420,22 +689,69 @@ function regExRepNew($index, $parameter, $parameter2, $parameter3) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
     $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
     array_push($types, ["type" => "Text"]);
-    $_SESSION["types"] = serialize($types);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function joinTextNew($index, $parameter, $parameter2, $parameter3) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Text") {
+            $answer = ["msg"=>"Selected column is not text type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (in_array($parameter, $titles)) {
+        $type = array_search($parameter, $types);
+        if ($types[$type]["type"] != "Text") {
+            $answer = ["msg"=>"Second column is not numeric type"];
+            return $answer;
+        }
+    }
+
+    if (strlen($parameter3) > 250) {
+        $answer = ["msg"=>"Replace parameter can be only 250 characters long"];
+        return $answer;
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -453,13 +769,6 @@ function joinTextNew($index, $parameter, $parameter2, $parameter3) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
                     $changedValue = ("".$row[$index].$parameter3.$row[$parameter]);
@@ -476,22 +785,56 @@ function joinTextNew($index, $parameter, $parameter2, $parameter3) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
     $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
     array_push($types, ["type" => "Text"]);
-    $_SESSION["types"] = serialize($types);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function toDaysNew($index, $parameter2) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Date") {
+            $answer = ["msg"=>"Selected column is not date type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -499,7 +842,6 @@ function toDaysNew($index, $parameter2) {
 
     $first = true;
     $firstHeads = [];
-    $keyF = "";
 
     if ($reading) {
         while (($line = fgets($reading)) !== false) {
@@ -510,24 +852,17 @@ function toDaysNew($index, $parameter2) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 $keyF = array_search($index, $csvParser->titles);
                 $datetime = new DateTime();
-                $types = unserialize($_SESSION["types"]);
+                $types = unserialize($_SESSION["DATAPREP-types"]);
                 $format = $types[$keyF]['format'];
                 foreach ($csvParser->data as $key => $row) {
                     $newDate = $datetime->createFromFormat($format, $row[$index]);
                     if ($newDate) {
                         $changedValue = date_format($newDate, 'l');
                     } else {
-                        $changedValue = "Invalit date";
+                        $changedValue = "";
                     }
                     $csvParser->data[$key][$parameter2] = $changedValue;
                     if ($dataToSendBack[$changedValue] == null) {
@@ -542,23 +877,67 @@ function toDaysNew($index, $parameter2) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
     $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
-    $format = $types[$keyF]['format'];
+    $types = unserialize($_SESSION["DATAPREP-types"]);
     array_push($types, ["type" => "Text"]);
-    $_SESSION["types"] = serialize($types);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function divDayNew($index, $index2, $parameter2) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Date") {
+            $answer = ["msg"=>"Selected column is not date type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
+    if (in_array($index2, $titles)) {
+        $type = array_search($index2, $titles);
+        if ($types[$type]["type"] != "Date") {
+            $answer = ["msg"=>"Second column is not date type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -576,18 +955,11 @@ function divDayNew($index, $index2, $parameter2) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 $keyF = array_search($index, $csvParser->titles);
                 $keyF2 = array_search($index2, $csvParser->titles);
                 $datetime = new DateTime();
-                $types = unserialize($_SESSION["types"]);
+                $types = unserialize($_SESSION["DATAPREP-types"]);
                 $format = $types[$keyF]['format'];
                 $format2 = $types[$keyF2]['format'];
                 foreach ($csvParser->data as $key => $row) {
@@ -595,24 +967,28 @@ function divDayNew($index, $index2, $parameter2) {
                     $newDate2 = $datetime->createFromFormat($format2, $row[$index2]);
                     if ($newDate && $newDate2) {
                         $seconds = date_timestamp_get($newDate) - date_timestamp_get($newDate2);
-                        $days = floor($seconds / (3600*24));
-                        $seconds  -= $days * 3600 * 24;
-                        $hrs   = floor($seconds / 3600);
-                        $seconds  -= $hrs * 3600;
-                        $mnts = floor($seconds / 60);
-                        $seconds  -= $mnts * 60;
-                        $toReturn = "";
-                        if ($days != 0) {
-                            $toReturn = $toReturn.$days." d ";
-                        }
-                        if ($hrs != 0) {
-                            $toReturn = $toReturn.$hrs." h ";
-                        }
-                        if ($mnts != 0) {
-                            $toReturn = $toReturn.$mnts." m ";
-                        }
-                        if ($seconds != 0) {
-                            $toReturn = $toReturn.$seconds." s";
+                        if ($seconds == 0) {
+                            $toReturn = "0 s";
+                        } else {
+                            $days = floor($seconds / (3600 * 24));
+                            $seconds -= $days * 3600 * 24;
+                            $hrs = floor($seconds / 3600);
+                            $seconds -= $hrs * 3600;
+                            $mnts = floor($seconds / 60);
+                            $seconds -= $mnts * 60;
+                            $toReturn = "";
+                            if ($days != 0) {
+                                $toReturn = $toReturn . $days . " d ";
+                            }
+                            if ($hrs != 0) {
+                                $toReturn = $toReturn . $hrs . " h ";
+                            }
+                            if ($mnts != 0) {
+                                $toReturn = $toReturn . $mnts . " m ";
+                            }
+                            if ($seconds != 0) {
+                                $toReturn = $toReturn . $seconds . " s";
+                            }
                         }
                     } else {
                         $toReturn = "";
@@ -630,21 +1006,56 @@ function divDayNew($index, $index2, $parameter2) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
     $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
     array_push($types, ["type" => "Text"]);
-    $_SESSION["types"] = serialize($types);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function toTimestampNew($index, $parameter2){
-    $filePath = unserialize($_SESSION["fileName"]);
+
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (in_array($index, $titles)) {
+        $type = array_search($index, $titles);
+        if ($types[$type]["type"] != "Date") {
+            $answer = ["msg"=>"Selected column is not date type"];
+            return $answer;
+        }
+    } else {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -662,21 +1073,18 @@ function toTimestampNew($index, $parameter2){
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 $keyF = array_search($index, $csvParser->titles);
                 $datetime = new DateTime();
-                $types = unserialize($_SESSION["types"]);
+                $types = unserialize($_SESSION["DATAPREP-types"]);
                 $format = $types[$keyF]['format'];
                 foreach ($csvParser->data as $key => $row) {
                     $newDate = $datetime->createFromFormat($format, $row[$index]);
-                    $seconds = date_timestamp_get($newDate);
+                    if ($newDate) {
+                        $seconds = date_timestamp_get($newDate);
+                    } else {
+                        $seconds = 0;
+                    }
                     $csvParser->data[$key][$parameter2] = $seconds;
                     if ($dataToSendBack[$seconds] == null) {
                         $dataToSendBack[$seconds] = 1;
@@ -690,22 +1098,82 @@ function toTimestampNew($index, $parameter2){
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $countAll = 0;
+    foreach ($dataToSendBack as $item => $z) {
+        if (is_numeric($item)) {
+            $countAll = $countAll + $item;
+        }
+    }
+
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
-    $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
-    array_push($types, ["type" => "Numeric"]);
-    $_SESSION["types"] = serialize($types);
+    $answer = ['row'=>$dataToSendBack, 'title'=>$e, "type" => ["type" => "Numeric", "count" => $countAll]];
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    array_push($types, ["type" => "Numeric", "count" => $countAll]);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function exprNew($index, $parameter, $parameter2) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (in_array($parameter2, $titles)) {
+        $answer = ["msg"=>"Column with this name already exist"];
+        return $answer;
+    }
+
+    if (!$parameter || $parameter == "") {
+        $answer = ["msg"=>"No expression selected"];
+        return $answer;
+    } else {
+        if (strlen($parameter) > 250) {
+            $answer = ["msg"=>"Expression can be only 250 characters long"];
+            return $answer;
+        }
+    }
+
+    $textToVal = $parameter;
+
+    foreach ($titles as $k => $v) {
+        if ($types[$k]["type"] == "Numeric") {
+            $textToVal = str_replace("\"" . $v . "\"", "", $textToVal);
+        }
+    }
+
+    $chars = ["ABS", "SIGN", "GCD", "LCM", "POW", "PRODUCT", "SQRT", "QUOTIENT", "MOD", "IF", "(", ")", "+", "-", "*", "/", "%", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ",", " ", "<=", ">=", "==", "<", ">"];
+
+    foreach ($chars as $k2 => $v2) {
+        $textToVal = str_replace($v2, "", $textToVal);
+    }
+
+    if ($textToVal != "") {
+        $answer = ["msg"=>"Invalid characters: ".$textToVal];
+        return $answer;
+    }
+
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
     $dataToSendBack = [];
     $count = 0;
     $reading = fopen($filePath, 'r');
@@ -726,52 +1194,13 @@ function exprNew($index, $parameter, $parameter2) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                array_push($firstHeads, $parameter2);
-                $first = false;
-                $count = count($csvParser->titles) -1;
-                foreach ($csvParser->titles as $k => $v) {
-                    $textToVal = str_replace("\"".$v."\"", "", $textToVal);
-                }
-
-                $chars = ["ABS", "SIGN", "GCD", "LCM", "POWER", "PRODUCT", "SQRT", "QUOTIENT", "MOD", "IF", "(", ")", "+", "-", "*", "/", "%", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ",", " ", "=", "<", ">"];
-
-                foreach ($chars as $k2 => $v2) {
-                    $textToVal = str_replace($v2, "", $textToVal);
-                }
-
-                $textToEval = str_replace("IF", "MYIF", $textToEval);
-                if ($textToEval[0] == "=") {
-                    $textToEval = substr($textToEval, 1);
-                }
-
-                if ($textToVal != "") {
-                    return ["Invalid chars"=>$textToVal];
-                }
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $key => $row) {
                     foreach ($row as $key2 => $item) {
-                        $number = ($item == (int) $item) ? (int) $item : (float) $item;
-                        $textToEval = str_replace("\"".$key2."\"", $number, $textToEval);
-                    }
-                    $textToEval2 = strtolower($textToEval);
-                    $toSave = null;
-                    eval('$toSave='.$textToEval2.";");
-                    $csvParser->data[$key][$parameter2] = $toSave;
-                    if ($dataToSendBack[$toSave] == null) {
-                        $dataToSendBack[$toSave] = 1;
-                    } else {
-                        $dataToSendBack[$toSave] = $dataToSendBack[$toSave] + 1;
-                    }
-                }
-                foreach ($csvParser->data as $key => $row) {
-                    foreach ($row as $key2 => $item) {
-                        $number = 0;
                         try {
-                            $number = ($item == (int) $item) ? (int) $item : (float) $item;
+                            if (is_numeric($item)) {
+                                $number = ($item == (int) $item) ? (int) $item : (float) $item;
+                            }
                         } catch (Exception $e) {
                             $number = 0;
                         }
@@ -779,12 +1208,17 @@ function exprNew($index, $parameter, $parameter2) {
                     }
                     $textToEval2 = strtolower($textToEval);
                     $toSave = 0;
+                    $result = false;
                     try {
-                        eval('$toSave='.$textToEval2.";");
+                        $result = @eval('$toSave='.$textToEval2.";");
                     } catch (Exception $e) {
                         $toSave = 0;
                     }
-                    $csvParser->data[$key][$parameter2] = $toSave;
+                    if (!$result) {
+                        $csvParser->data[$key][$parameter2] = 0;
+                    } else {
+                        $csvParser->data[$key][$parameter2] = $toSave;
+                    }
                     if ($dataToSendBack[$toSave] == null) {
                         $dataToSendBack[$toSave] = 1;
                     } else {
@@ -798,24 +1232,52 @@ function exprNew($index, $parameter, $parameter2) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                array_push($firstHeads, $parameter2);
+                $first = false;
+                $count = count($csvParser->titles) -1;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
+    $countAll = 0;
+    foreach ($dataToSendBack as $item => $z) {
+        if (is_numeric($item)) {
+            $countAll = $countAll + $item;
+        }
+    }
+
+    $dataToSendBack = array_slice($dataToSendBack, 0, 300, true);
+
     $e = ['title'=>$parameter2, 'id'=>$count];
-    $answer = ['row'=>$dataToSendBack, 'title'=>$e];
-    $types = unserialize($_SESSION["types"]);
-    array_push($types, ["type" => "Text"]);
-    $_SESSION["types"] = serialize($types);
+    $answer = ['row'=>$dataToSendBack, 'title'=>$e, "type" => ["type" => "Numeric", "count" => $countAll]];
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    array_push($types, ["type" => "Numeric", "count" => $countAll]);
+    $_SESSION["DATAPREP-types"] = serialize($types);
     return $answer;
 }
 
 function delete($what) {
 
-    $filePath = unserialize($_SESSION["fileName"]);
-    $dataToSendBack = [];
-    $count = 0;
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (!in_array($what, $titles)) {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    }
+
     $reading = fopen($filePath, 'r');
     $writing = fopen($filePath.'.tmp', 'w');
 
@@ -831,13 +1293,6 @@ function delete($what) {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $key2 = array_search($what, $csvParser->titles);
-                unset($csvParser->titles[$key2]);
-                $firstHeads = $csvParser->titles;
-                $first = false;
-                fputcsv($writing, $firstHeads);
-            }
             if ($first == false) {
                 $arrToPush = [];
                 foreach ($csvParser->data as $key => $row) {
@@ -848,31 +1303,106 @@ function delete($what) {
                     fputcsv($writing, $arrToPush);
                 }
             }
+            if ($first) {
+                $key2 = array_search($what, $csvParser->titles);
+                unset($csvParser->titles[$key2]);
+                $firstHeads = $csvParser->titles;
+                $first = false;
+                fputcsv($writing, $firstHeads);
+                $_SESSION["DATAPREP-titles"] = serialize($firstHeads);
+            }
         }
     }
     fclose($reading); fclose($writing);
     rename($filePath.'.tmp', $filePath);
 
     $answer = ['deleted'=>'true'];
-    $types = unserialize($_SESSION["types"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
     unset($types[(int)$what]);
     $newTypes = [];
     foreach ($types as $type => $x) {
         array_push($newTypes, $types[$type]);
     }
-    $_SESSION["types"] = serialize($newTypes);
+    $_SESSION["DATAPREP-types"] = serialize($newTypes);
     return $answer;
 }
 
 function changeType($what, $parameter, $parameter2) {
-    $types = unserialize($_SESSION["types"]);
+
+    $titles = unserialize($_SESSION["DATAPREP-titles"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+
+    if ($titles == null || $types == null || $filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
+    if (!in_array($titles[$what], $titles)) {
+        $answer = ["msg"=>"Selected column is not part of dataset"];
+        return $answer;
+    } else {
+        $title = $titles[$what];
+    }
+
+    if ($parameter != "Date" && $parameter != "Text" && $parameter != "Numeric") {
+        $answer = ["msg"=>"Selected type does not exist"];
+        return $answer;
+    }
+
+    if (strlen($parameter2) > 250) {
+        $answer = ["msg"=>"Replace parameter can be only 250 characters long"];
+        return $answer;
+    }
+
     if ($parameter == "Date") {
         $types[(int)$what] = ["type"=>$parameter, "format"=>$parameter2];
+    } else if ($parameter == "Numeric") {
+        $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+        $myFile = fopen($filePath, "r");
+
+        $unique = [];
+        $firstHeads = [];
+        $first = true;
+        if ($myFile) {
+            while (($line = fgets($myFile)) !== false) {
+                $csvParser = new parseCSV();
+                if (!$first) {
+                    $csvParser->heading = false;
+                    $csvParser->fields = $firstHeads;
+                }
+                $csvParser->delimiter = ",";
+                $csvParser->parse($line);
+                if ($first == false) {
+                    foreach ($csvParser->data as $row) {
+                        if ($unique[$row[$title]] == null) {
+                            $unique[$row[$title]] = 1;
+                        } else {
+                            $unique[$row[$title]] = $unique[$row[$title]] + 1;
+                        }
+                    }
+                }
+                if ($first) {
+                    $firstHeads = $csvParser->titles;
+                    $first = false;
+                }
+            }
+
+            fclose($myFile);
+            $countAll = 0;
+            foreach ($unique as $item => $z) {
+                if (is_numeric($item)) {
+                    $countAll = $countAll + $item;
+                }
+            }
+            $types[(int)$what] = ["type"=>$parameter, "count"=>$countAll];
+        }
     } else {
         $types[(int)$what] = ["type"=>$parameter];
     }
-    $_SESSION["types"] = serialize($types);
-    return ["changed"=>"ok"];
+    $_SESSION["DATAPREP-types"] = serialize($types);
+    return $types[(int)$what];
 }
 
 function sign($x) {
@@ -888,16 +1418,12 @@ function sign($x) {
     return $toReturn;
 }
 
-function gdc($a, $b) {
-    return (!$b)?$a:gdc($b,$a%$b);
+function gcd($a, $b) {
+    return (!$b)?$a:gcd($b,$a%$b);
 }
 
 function lcm($a, $b) {
-    return ($a * $b) / gdc($a, $b);
-}
-
-function power($x, $y) {
-    return pow($x, $y);
+    return ($a * $b) / gcd($a, $b);
 }
 
 function product($x, $y) {

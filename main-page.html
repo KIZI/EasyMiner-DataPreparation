@@ -39,7 +39,7 @@
 </header>
 <div id="app">
     <div class="main-content" style="margin-bottom: 40px">
-        <h1>Data preprocessing</h1>
+        <h1>Data preparation</h1>
         <table class="info-table" id="info-table">
             <tr>
                 <th>Atribute name</th>
@@ -225,19 +225,23 @@
     </div>
 </div>
 
-<div id="modal-confirm-delete" class="modal-window">
-    <h1>Delete Sloupec 1</h1>
-    <p>Are you sure you want to delete Sloupec 1?</p>
+<div id="modal-confirm-delete" class="alert-window">
+    <div id="delete"></div>
     <table>
         <tr>
             <td>
-                <button class="button-prep-danger hide">Delete</button>
+                <button class="button-prep-danger" id="conf-del">Delete</button>
             </td>
             <td>
                 <button class="button-prep hide">Cancel</button>
             </td>
         </tr>
     </table>
+</div>
+
+<div id="alert-window" class="alert-window">
+    <div id="alert-content"></div>
+    <button style="margin: auto" class="button-prep" id="ok-button">Ok</button>
 </div>
 
 <div id="spinner-modal" class="loader"></div>

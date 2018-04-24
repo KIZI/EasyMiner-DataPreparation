@@ -17,16 +17,52 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 } else if ($_SERVER['REQUEST_METHOD'] == "GET") {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=data.csv');
-    $filePath = unserialize($_SESSION["fileName"]);
-    $output = fopen($filePath, 'r');
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+    $myFile = fopen($filePath, "r");
+    $output = fopen('php://output', 'w');
+
+    $first = true;
+    $firstHeads = [];
+
+    if ($myFile) {
+        while (($line = fgets($myFile)) !== false) {
+            $csvParser = new parseCSV();
+            if (!$first) {
+                $csvParser->heading = false;
+                $csvParser->fields = $firstHeads;
+            }
+            $csvParser->delimiter = ",";
+            $csvParser->parse($line);
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                $first = false;
+                fputcsv($output, $firstHeads);
+            }
+            if ($first == false) {
+                $arrToPush = [];
+                foreach ($csvParser->data as $key => $row) {
+                    foreach ($csvParser->data[$key] as $val) {
+                        array_push($arrToPush, $val);
+                    }
+                    fputcsv($output, $arrToPush);
+                }
+            }
+        }
+    }
 } else {
     http_response_code(405);
 }
 
 function dataToSend() {
-    $filePath = unserialize($_SESSION["fileName"]);
+    $filePath = unserialize($_SESSION["DATAPREP-fileName"]);
+
+    if ($filePath == null) {
+        $answer = ["msg"=>"No data provided"];
+        return $answer;
+    }
+
     $myFile = fopen($filePath, "r");
-    $types = unserialize($_SESSION["types"]);
+    $types = unserialize($_SESSION["DATAPREP-types"]);
 
     $answerTitles = [];
     $simpleTitles = [];
@@ -44,18 +80,6 @@ function dataToSend() {
             }
             $csvParser->delimiter = ",";
             $csvParser->parse($line);
-            if ($first) {
-                $firstHeads = $csvParser->titles;
-                $first = false;
-                $simpleTitles = $csvParser->titles;
-
-                $i = 0;
-                foreach ($csvParser->titles as $value) {
-                    $e = ['id' => $i, 'title' => $value];
-                    array_push($answerTitles, $e);
-                    $i++;
-                }
-            }
             if ($first == false) {
                 foreach ($csvParser->data as $row) {
                     foreach ($row as $key2 => $item) {
@@ -68,6 +92,18 @@ function dataToSend() {
                     }
                 }
                 $count++;
+            }
+            if ($first) {
+                $firstHeads = $csvParser->titles;
+                $first = false;
+                $simpleTitles = $csvParser->titles;
+
+                $i = 0;
+                foreach ($csvParser->titles as $value) {
+                    $e = ['id' => $i, 'title' => $value];
+                    array_push($answerTitles, $e);
+                    $i++;
+                }
             }
         }
 
@@ -141,11 +177,11 @@ function dataToSend() {
             }
 
         }
-        $_SESSION["types"] = serialize($types);
+        $_SESSION["DATAPREP-types"] = serialize($types);
     }
 
     foreach ($unique as $v => $x) {
-        $unique[$v] = array_slice($unique[$v], 0, 300);
+        $unique[$v] = array_slice($unique[$v], 0, 300, true);
     }
 
     $toReturn = ["titles"=>$answerTitles, "rows"=>$unique, "count"=>$count, "types"=>$types];
