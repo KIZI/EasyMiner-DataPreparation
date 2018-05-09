@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $_SESSION["DATAPREP-types"] = serialize($types);
 
 
+            /*
             $reading1 = fopen($tmpFile, 'r');
             $writing1 = fopen($tmpFile.'.tmp', 'w');
 
@@ -63,6 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             fclose($writing1);
             rename($tmpFile.'.tmp', $tmpFile);
 
+            */
+
             $reading = fopen($tmpFile, 'r');
             $writing = fopen($tmpFile.'.tmp', 'w');
 
@@ -73,54 +76,100 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $dataTrain = [];
 
             if ($reading) {
+                $linesInLines = false;
+                $stillLinesInLines = false;
+                $text = "";
                 while (($line = fgets($reading)) !== false) {
-                    $csvParser = new parseCSV();
-                    if (!$first) {
-                        $csvParser->heading = false;
-                        $csvParser->fields = $firstHeads;
-                    }
-                    $csvParser->delimiter = $_POST["separator"];
-                    $csvParser->parse($line);
-                    if ($first == false) {
-                        if ($i < 6) {
-                            if ($csvParser->data !== []) {
-                                array_push($dataTrain, $csvParser->data);
+                    $line = mb_convert_encoding($line, 'UTF-8', $_POST["encoding"]);
+                    $quotes = substr_count($line,"\"");
+                    if ($quotes != 0) {
+                        if ($quotes % 2 != 0) {
+                            if ($linesInLines == true) {
+                                $stillLinesInLines = false;
+                                $linesInLines = false;
+
+                            } else {
+                                $linesInLines = true;
+
                             }
-                            $i++;
+                        } else {
+                            if ($linesInLines && $stillLinesInLines) {
+                                $linesInLines = false;
+
+                            }
                         }
-                        foreach ($csvParser->data as $key => $row) {
-                            $arrToPush = [];
+                    } else if ($quotes == 0 && $linesInLines) {
+                        $stillLinesInLines = true;
+
+                    } else if ($quotes == 0 && !$linesInLines) {
+                        $text = $line;
+                    }
+                    if (!$linesInLines) {
+                        $csvParser = new parseCSV();
+                        if (!$first) {
+                            $csvParser->heading = false;
+                            $csvParser->fields = $firstHeads;
+                        }
+                        $csvParser->delimiter = $_POST["separator"];
+                        if ($text != "") {
+                            $text = $text." ".$line;
+                        } else {
+                            $text = $line;
+                        }
+                        $csvParser->parse($text);
+                        $text = "";
+                        if ($first == false) {
+                            if ($i < 6) {
+                                if ($csvParser->data !== []) {
+                                    array_push($dataTrain, $csvParser->data);
+                                }
+                                $i++;
+                            }
+                            foreach ($csvParser->data as $key => $row) {
+                                $arrToPush = [];
+                                $first1 = true;
+                                foreach ($csvParser->data[$key] as $val) {
+                                    array_push($arrToPush, $val);
+                                    /*
+                                    if ($first1) {
+                                        $data = "\"".$val."\"";
+                                        $first1 = false;
+                                    } else {
+                                        $data = $data.","."\"".$val."\"";
+                                    }
+                                    */
+                                }
+                                //file_put_contents($tmpFile.'.tmp', $data."\n", FILE_APPEND);
+                                fputcsv($writing, $arrToPush);
+                            }
+                        }
+                        if ($first) {
+                            $firstHeads = $csvParser->titles;
+                            $first = false;
+                            $count = count($csvParser->titles) -1;
                             $first1 = true;
-                            foreach ($csvParser->data[$key] as $val) {
-                                array_push($arrToPush, $val);
+                            $titles = "";
+                            /*
+                            foreach ($csvParser->titles as $val) {
                                 if ($first1) {
-                                    $data = "\"".$val."\"";
+                                    $titles = "\"".$val."\"";
                                     $first1 = false;
                                 } else {
-                                    $data = $data.","."\"".$val."\"";
+                                    $titles = $titles.","."\"".$val."\"";
                                 }
                             }
-                            file_put_contents($tmpFile.'.tmp', $data."\n", FILE_APPEND);
-                            //fputcsv($writing, $arrToPush, ",", "\n");
+                            */
+                            fputcsv($writing, $firstHeads);
+                            //file_put_contents($tmpFile.'.tmp', $titles."\n", FILE_APPEND);
+                            $_SESSION["DATAPREP-titles"] = serialize($csvParser->titles);
                         }
-                    }
-                    if ($first) {
-                        $firstHeads = $csvParser->titles;
-                        $first = false;
-                        $count = count($csvParser->titles) -1;
-                        $first1 = true;
-                        $titles = "";
-                        foreach ($csvParser->titles as $val) {
-                            if ($first1) {
-                                $titles = "\"".$val."\"";
-                                $first1 = false;
-                            } else {
-                                $titles = $titles.","."\"".$val."\"";
-                            }
+                    } else {
+                        $line = preg_replace('/\s\s+/', ' ', $line);
+                        if ($text != "") {
+                            $text = $text." ".$line;
+                        } else {
+                            $text = $line;
                         }
-                        //fputcsv($writing, $firstHeads, ",", "\n");
-                        file_put_contents($tmpFile.'.tmp', $titles."\n", FILE_APPEND);
-                        $_SESSION["DATAPREP-titles"] = serialize($csvParser->titles);
                     }
                 }
             }

@@ -85,7 +85,9 @@ function dataToSend() {
                     foreach ($row as $key2 => $item) {
                         $k = array_search($key2, $simpleTitles);
                         if ($unique[$k][$item . ""] == null) {
-                            $unique[$k][$item . ""] = 1;
+                            if (count($unique[$k]) <= 300 || is_numeric($item)) {
+                                $unique[$k][$item . ""] = 1;
+                            }
                         } else {
                             $unique[$k][$item . ""] = $unique[$k][$item . ""] + 1;
                         }
